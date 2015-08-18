@@ -1,7 +1,7 @@
 \documentclass[8pt]{extarticle}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
-\usepackage[a4paper,landscape,margin=1cm]{geometry}
+\usepackage[a4paper,landscape,margin=0.5cm]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{xcolor}
@@ -27,7 +27,6 @@
 
 \begin{document}
 \begin{multicols*}{5}
-\huge{ParProg 2015}\\\\
 \textbf{[Java Thread]}
 In Java können Threads mittels Vererbung hergestellt werden. Hierzu gibt es die Basisklasse \textbf{Thread}. Beim ableiten des von der Klasse muss nur \textbf{public void run()} überschrieben werden. Für den Start des Thread muss dann die Methode \textbf{start()} aufgerufen werden. EIN AUFRUF VON \textbf{run()} WÜRDE BLOCKIEREN!
 \begin{lstlisting}[language=java]
@@ -156,7 +155,6 @@ class CalcTask implements Callable<Integer> {
     return val;
   }
 }
-
 ExecutorService pool =
   Executors.newFixedThreadPool(2);
 Future<Integer> fut1, fut2;
@@ -253,7 +251,7 @@ Task<int> task2 = Task.Factory.StartNew(() => {
 Console.WriteLine(task2.Result);
 \end{lstlisting}
 \textbf{[Exceptions]} in Tasks werden seit .NET 4.5 stillschweigend ingoriert und müssen explizit via den Event \textbf{TaskScheduler.UnobservedTaskException} aboniert werden.\\\\
-\textbf{[Datenparallelität]} kann mittels Bordmitteln erreicht werden. Voraussetzung ist, dass die Unabhängigkeit der Daten gegeben ist!
+\textbf{[Datenparallelität]} kann mittels Bordmitteln erreicht werden. Voraussetzung ist, dass die Unabhängigkeit der Daten gegeben ist! Nach dem Aufruf wird auf die Beendigung ALLER Tasks gewartet.
 \begin{lstlisting}[language=c++]
 Parallel.Invoke(
   () => Console.WriteLine("foo"),
@@ -268,6 +266,26 @@ Parallel.For(0, arr.Length,
   idx => MoreStuff(arr[idx])
 );
 \end{lstlisting}
-\end{multicols*}
+\textbf{[async/await]} erlauben das teil-asynchrone Ausführen von Funktionen. Der Compiler zerlegt die Funktion in zwei Hälften. Bis zum ersten blockierenden \textbf{await} wird die Funktion vom Caller ausgeführt. Der Rest wird auf einem \textbf{TPL}-Thread erledigt. \textbf{await} darf nur in Funktionen vorkommen die mit \textbf{async} gekennzeichtet sind und Funktionen die mit \textbf{async} gekennzeichnet sind MÜSSEN ein \textbf{await} enthalten! Das was nach dem await kommt ist die \textbf{Continuation}. Falls der Aufrufer \textbf{KEIN UI-Thread} auf einem \textbf{TPL-Thread} ausgeführt. Ist der Aufrufer ein \textbf{UI-Thread} dann wird die Continuation auf den \textbf{UI-Thread} dispatched. ACHTUNG: \textbf{async/await} kann zu einem Threadwechsel INNERHALB eines Funktionsaufrufs führen.
+\begin{lstlisting}[language=c++]
+class MainClass
+  {
+  public static async void DoStuff()
+    {
+    await Task.Delay(1000);
+    Console.WriteLine("Knights!");
+    }
 
+  public static void Main(string[] args)
+    {
+    Console.WriteLine("foo");
+    DoStuff();
+    // In the meantime 'Knights!' gets
+    // written to the console
+    Thread.Sleep(5000);
+    Console.WriteLine("bar");
+    }
+  }
+\end{lstlisting}
+\end{multicols*}
 \end{document}
