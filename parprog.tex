@@ -362,6 +362,34 @@ void CudaVAdd(float* A, float* B,
 }
 \end{lstlisting}
 \textbf{[CUDA Function Keywords]} sind \textbf{\_\_global\_\_}(läuft auf Device wird von Host aufgerufen), \textbf{\_\_device\_\_}(läuft auf Device und wird von Device aufgerufen) und \textbf{\_\_host\_\_}(läuft auf Host und wird auch vom Host aufgerufen).\\\\
-\textbf{[Die Launch-Configuration]} muss dynamisch bestimmt werden und sich am Problem und den Fähigkeiten des Device (ermittelt mit \textbf{cudaGetDeviceProperties()}) orientieren. Aus Effizienzgründen sollte die Blockgrösse ein Vielfaches von 32 sein (remember: 32 Threads per Warp, multiple Warps per Block). Die Blockgrösse sollte auch nicht zu gross gewählt werden, um die Anzahl der unnützen Threads zu minimieren. Die SM sollten voll ausgeschöpft werden (also ans Limit von Resident Blocks und Resident Threads gehen). Grosse Blöcke haben den vorteil, dass die Threads interagieren können.
+\textbf{[Die Launch-Configuration]} muss dynamisch bestimmt werden und sich am Problem und den Fähigkeiten des Device (ermittelt mit \textbf{cudaGetDeviceProperties()}) orientieren. Aus Effizienzgründen sollte die Blockgrösse ein Vielfaches von 32 sein (remember: 32 Threads per Warp, multiple Warps per Block). Die Blockgrösse sollte auch nicht zu gross gewählt werden, um die Anzahl der unnützen Threads zu minimieren. Die SM sollten voll ausgeschöpft werden (also ans Limit von Resident Blocks und Resident Threads gehen). Grosse Blöcke haben den vorteil, dass die Threads interagieren können.\\\\
+\textbf{[Memory Access]} in den \textbf{Device Global Memory} ist extrem viel teuerer (ca. Faktor 125) als Zugriff in den \textbf{Shared Memory(\_\_shared\_\_)} eines SM. Um \textbf{Memory Coalescing}(das Zusammenfassen mehrerer Ladevorgänge zu einem) zu verwenden sollten Speicherzugriffe möglichst folgende Gestalt haben:
+\begin{lstlisting}[language=c]
+data[(Ausdruck ohne threadIdx.x) + threadIdx.x]
+\end{lstlisting}
+\textbf{[Synchronisierung]} in CUDA kann mit \textbf{\_\_syncthreads()} erreicht werden, was alle Threads in einem Block zum synchronisieren zwingt.\\\\
+\textbf{[Effiziente Matrix Multiplikation]}:
+\begin{lstlisting}[language=c]
+__shared__ float Asub[TILE_SIZE][TILE_SIZE];
+__shared__ float Bsub[TILE_SIZE][TILE_SIZE];
+
+int tx = threadIdx.x, ty = threadIdx.y;
+int col = blockIdx.x * TILE_SIZE + tx;
+int row = blockIdx.y * TILE_SIZE + ty;
+
+for (int tile = 0; tile < nofTiles; tile++) {
+
+  Asub[ty][tx] = A[row*K + tile*TILE_SIZE + tx];
+  Bsub[ty][tx] = B[(tile*TILE_SIZE + ty)*M + col];
+
+  __syncthreads();
+
+  for (int ksub = 0; ksub < TILE_SIZE; ksub++) {
+    sum += Asub[ty][ksub] * Bsub[ksub][tx];
+  }
+
+  __syncthreads();
+}
+\end{lstlisting}
 \end{multicols*}
 \end{document}
