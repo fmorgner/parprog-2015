@@ -146,7 +146,7 @@ Auf Synchronisierung kann verzichtet werden wenn entweder \textbf{Unveränderlic
 \textbf{[Collections]} aus \textbf{java.util} sind grundsätzlich nicht Threadsafe. Es gibt jedoch Thread-Safe-Collections in \textbf{java.util.concurrent}.\\\\
 \textbf{[Deadlocks]} treten auf wenn sich Threads gegenseitig sperren. Folgende Bedingungen müssen eintreten damit es einen Deadlock gibt: \textbf{Geschachtelte Locks} UND \textbf{Zyklische Warteabhängigkeiten} UND \textbf{Gegenseitiger Ausschluss} UND \textbf{Kein Timeout}. Deadlocks lassen sich durch Einführen einer \textbf{linearen Sperrordnung} oder \textbf{grobgranularer Sperrung} lösen.\\\\
 \textbf{[Starvation]} tritt ein wenn einem Thread immer wieder die Möglichkeit zu laufen "weggeschnappt" wird. Dies lässt sich durch \textbf{faire} Synchronisationsprimitiven lösen.\\\\
-\textbf{[Thread-Pools]} besitzen eine \textbf{Task Queue} in welcher Tasks eingereit und dann von einem freien \textbf{Worker Thread} bearbeitet werden. In Java erzeugt man \textbf{Thread Pools} mit der Factory Klasse \textbf{Executors}. Zur Auswahl stehen \textbf{newFixedThreadPool(nofThreads)}, \textbf{newChachedThreadPool()} (automatische Thread Zahl) und \textbf{newWorkStealingPool()}. Gesondert gibt es noch den \textbf{ForkJoinPool}, welcher es erlaubt rekursive Tasks zu formulieren. \textbf{Thread Pools} haben den Vorteil, dass nicht unnötig viele Threads erzeugt werden. Eine Einschränkung ist, dass Tasks nicht von einander abhängig sein dürfen da sonst eine \textbf{Deadlock}-Gefahr besteht. Tasks werden mittels des \textbf{Callable} Interfaces implementiert:
+\textbf{[Thread-Pools]} besitzen eine \textbf{Task Queue} in welcher Tasks eingereit und dann von einem freien \textbf{Worker Thread} bearbeitet werden. In Java erzeugt man \textbf{Thread Pools} mit der Factory Klasse \textbf{Executors}. Zur Auswahl stehen \textbf{newFixedThreadPool(nofThreads)}, \textbf{newChachedThreadPool()} (automatische Thread Zahl) und \textbf{newWorkStealingPool()}. Gesondert gibt es noch den \textbf{ForkJoinPool}, welcher es erlaubt rekursive Tasks zu formulieren. \textbf{Thread Pools} haben den Vorteil, dass nicht unnötig viele Threads erzeugt werden. Eine Einschränkung ist, dass Tasks nicht von einander abhängig sein dürfen da sonst eine \textbf{Deadlock}-Gefahr besteht. Der \textbf{ForkJoinPool} setzt im Gegensatz zu den anderen Pools \textbf{Daemon Thread}s ein. Tasks werden mittels des \textbf{Callable} Interfaces implementiert:
 \begin{lstlisting}[language=java]
 class CalcTask implements Callable<Integer> {
   @Override
@@ -187,6 +187,86 @@ void asyncOp(int in, Consumer<Integer> cb) {
 asyncOp(42, res -> {
   System.out.println(res);
 });
+\end{lstlisting}
+\textbf{[Continuations]} bieten in Java 8 eine Möglichkeit eine Folgeoperation an einen Task anzuhängen. Dazu verwendet man \textbf{CompletableFuture<T>}:
+\begin{lstlisting}[language=java]
+CompletableFuture<Long> fut = 
+  CompletableFuture.supplyAsync(() -> longOp());
+//...
+fut.thenAccept(res -> System.out.println(res));
+\end{lstlisting}
+Die Continuation läuft auf dem Initiator \textbf{NUR WENN} die Future das Ergebnis schon hat, sonst auf einem beliebigen Worker Thread. Mittels \textbf{allOf()} und \textbf{any()} kann eine Continuation an mehrere Futures gebunden werden:
+\begin{lstlisting}[language=java]
+// wait for ALL Futures to arrive
+CompletableFuture.allOf(fut1, fut2)
+  .thenAccept(cont);
+// wait for ANY Future to arrive
+CompletableFuture.any(fut1, fut2)
+  .thenAccept(cont);
+\end{lstlisting}
+\textbf{[.NET]} Threads "funtionieren" ähnlich wie Java Threads, nur ohne Vererbung sondern mit \textbf{Delegates} und mit dem Unterschied, dass \textbf{uncaught Exceptions} per Default zum \textbf{Programmabbruch} führen. Hier ein Threading-Beispiel mit einem Lambda:
+\begin{lstlisting}[language=c++]
+Thread myThread = new Thread(() => {
+  for(int i = 0; i < 100; ++i)
+    {
+    Console.WriteLine("Step {0}", i);
+    }
+});
+// ...
+myThread.Start();
+myThread.Join();
+\end{lstlisting}
+Im Gegensatz zu Java 8 können in .NET Lambdas auch \textbf{non-final} Variablen aus dem umgebenden Scope (via Referenzen) zugegriffen werden (AUCH SCHREIBEND!!!) was die Chance auf \textbf{low-level} Races erhöht.\\\\
+\textbf{[Delegates]} sind vergleichbar mit Funktionszeigern welche ein implizites \textbf{this} besitzen. Sie sind damit leichgewichtiger als Java Interfaces, da sie keine Vererbungshierarchie aufweisen. Lambdas sind im Prinzip eine Abbildung von Delegates.\\\\
+\textbf{[Monitor]} ist in .NET mittels des Schlüsselworts \textbf{lock} verfügbar, welches ähnlich wie \textbf{synchronized} vor einen Block gehängt wird. Als Best-Practice hat es sich eingebürgert ein Hilfsobjekt und nicht das eigene Objekt zu sperren. Zum warten und benachrichten werden \textbf{Monitor.Wait(lock)}, \textbf{Monitor.Pulse()} und \textbf{Monitor.PulseAll()} verwendet. Der .NET Monitor ist fair und \textbf{Pulse()} weckt immer den Thread der schon am längsten wartet.
+\begin{lstlisting}[language=c++]
+class Account {
+  // ...
+  private object syncObject = new object();
+
+  public void syncOp1() {
+    //...
+    lock(syncObject) {
+      dangerous_things();
+      Monitor.PulseAll();
+    }
+  }
+}
+\end{lstlisting}
+\textbf{[Andere Primitiven]} in .NET sind analog zu Java, ausser \textbf{Locks \& Conditions} welche fehlen und auch die fehelenden Fairness Flags. Dazu kommen \textbf{ReadWriteLockSlim} (upgradable), \textbf{Mutex} (binärer Semaphor) und speziellere. \textbf{Ausser} den Collections in \textbf{System.Collections.Concurrent} sind alle Collection NICHT Threadsafe.\\\\
+\textbf{[TPL]} (Task Parallel Library) ist ein \textbf{Work Stealing Thread Pool} mit versciedenen Abstraktionsebenen (Task Parallelism, Data Parallelism, Asynchronous Programming with Continuations). Die \textbf{TPL} erkennt geschachtelte Task selber und es sind keine "speziellen" Vorkehrungen zu treffen. Des Weiteren spawned die \textbf{TPL} selber neue Threads wenn sie merkt das alle Threads blockiert sind. ACHTUNG: \textbf{TPL} Threads sind Background Threads (analog Java Daemon Threads). Via \textbf{ThreadPool.SetMaxThreads()} kann die maximale Anzahl Threads festgelegt werden -> \textbf{Deadlock}-Gefahr
+\begin{lstlisting}[language=c++]
+Task task1 = Task.Factory.StartNew(() => {
+  // do stuff
+});
+
+// wait for task to finish
+task1.Wait();
+
+// tasks can have return values
+Task<int> task2 = Task.Factory.StartNew(() => {
+  int res = 42;
+  return res;
+});
+
+// this blocks until task2 is finished
+Console.WriteLine(task2.Result);
+\end{lstlisting}
+\textbf{[Exceptions]} in Tasks werden seit .NET 4.5 stillschweigend ingoriert und müssen explizit via den Event \textbf{TaskScheduler.UnobservedTaskException} aboniert werden.\\\\
+\textbf{[Datenparallelität]} kann mittels Bordmitteln erreicht werden. Voraussetzung ist, dass die Unabhängigkeit der Daten gegeben ist!
+\begin{lstlisting}[language=c++]
+Parallel.Invoke(
+  () => Console.WriteLine("foo"),
+  () => Console.WriteLine("bar")
+);
+
+Parallel.ForEach(list,
+  entry => DoStuff(entry)
+);
+
+Parallel.For(0, arr.Length,
+  idx => MoreStuff(arr[idx])
+);
 \end{lstlisting}
 \end{multicols*}
 
