@@ -287,5 +287,81 @@ class MainClass
     }
   }
 \end{lstlisting}
+\textbf{[Das Java Memory Model]} garantiert Atomicity für \textbf{Lese-/Schreiboperationen} bis 32-Bit (mit \textbf{volatile} auch für long und double) und auf Referenzen. Visibility ist bei Locks \textbf{Release/Acquire} garantiert (Änderungen vor Release werden bei Acquire sichtbar). Bei \textbf{volatile} Variablen werden alle vorhergehenden Änderungen beim Zugriff sichtbar. \textbf{final}-Variablen werden nach dem Ende des Konstruktors sichtbar. Sichtbarkeit ist auch bei Thread-Start und Join sowie Task-Start und Ende garantiert.\\\\
+\textbf{[volatile in JAVA]} garantiert, dass kein Reordering über einen Zugriff (lesend oder schreibend) auf eine derart markierte Variable hinaus statt findet. Das Ordering vor und nach \textbf{volatile} folgt innerhalb eines Threads der "As-If-Serial"-Sematik, das heisst der Compiler darf optimieren falls die Semantik INNERHALB des Threads gleich bleibt. Zwischen Threads ist Ordering nur bei Zugriffen auf \textbf{volatile}-Variablen und bei Synchronisationsbefehlen garantiert. \textbf{volatile} Zugriffe führen nicht zu Locking.\\\\
+\textbf{[Atomare Operationen]} erlauben das atomare Ändern einer Variablen mit einer Zusätzlichen Operation (meistens return des alten Werts). Es gibt für Atomare Klassen für Boolean, Integer, Long und Referenzen (auch für Array-Elemente). Seit Java 8 gibt es auf diesen sogar Operationen welche ein "Expression-Lambda" nehmen. \textbf{Atomare Operationen} garantieren Ordering und Visibility. Beispiele für atomare Operationen sind \textbf{getAndSet(newVal)}, \textbf{getAndAdd(delta)} und \textbf{updateAndGet(lambda)}.
+\begin{lstlisting}[language=java]
+public class SLock {
+  private AtomicBoolean locked =
+    new AtomicBoolean(false);
+
+  public void acquire() {
+    // spin if already locked
+    // else set locked to true
+    while(locked.getAndSet(true)) {
+      Thread.yield();
+    }
+  }
+
+  public void release() {
+    // set false an make visible
+    locked.set(false);
+  }
+}
+\end{lstlisting}
+\textbf{[compareAndSet(old, new)]} erlaubt das atomare prüfen ob die Variable einen bestimmten Wert hat und wenn ja diesen zu ersetzen. Es gibt zurück ob die Ersetzung stattgefunden hat. ACHTUNG: Hier kann man in das \textbf{ABA-Problem} laufen.
+\begin{lstlisting}[language=java]
+do {
+  oldV = var.get();
+  newV = calcChanges(oldV);
+} while (!var.compareAndSet(oldV, newV));
+\end{lstlisting}
+\textbf{[Das ABA-Problem]} beschreibt was passiert wenn ein anderer Thread dazwischen schreibt aber sich der Wert den man vergleicht scheinbar nicht ändert. Dies ist Besonders bei lockfreien Datenstrukturen wie Stacks und listen ungünstig.
+\textbf{[Das .NET Memory Model]} unterscheided sich vom Java Memory Model darin, dass long und double auch mit \textbf{volatile} nicht atomar sind. Auch die Visibility ist nicht explizit definiert, da sie durch das Ordering gegeben ist. Betreffst des Orderings ist es wichtig, das \textbf{volatile} in .NET nur eine "Partial Fence" ist.
+\textbf{[volatile in .NET]} verfolgt beim Lesen die sogenannte \textbf{Acquire-Semantik}, was bedeutet, dass alles was \textbf{VOR dem LESEN} einer volatile Variable kommt nacht unten optimiert werden darf. Beim Schreiben wird die \textbf{Release-Semantik} angewandt. Die bedeutet, dass alles was \textbf{NACH dem SCHREIBEN} kommt nach oben optimiert werden darf. Da diese Semantik of ungenügend ist, gibt es mit \textbf{Thread.MemoryBarrier()} einen "Full-Fence".\\\\
+\textbf{[GPU Vokabular]}: Eine GPU besteht aus mehreren \textbf{Streaming Multiprocessors (SM)}. Jeder SM besteht aus mehreren \textbf{Streaming Processors (SP)}. In CUDA sind Threads in \textbf{Blöcke} zusammengefasst. Jeder SM kann mehrere Blöcke beherbergen. Jeder Block ist intern in \textbf{Warp}s zu je 32 Threads zerlegt.\\\\
+\textbf{[SIMD]} ist die Abkürzung für "Single Instruction Multiple Data". Dies entspricht dem Paradigma der Verktorparallelität. GPUs sind inherent für SIMD Applikationen geeignet denn innerhalb einen SM führen alle Cores die gleiche Instruktion auf unterschiedlichen Daten aus. Es gibt auch in CPU begrenzt mächtige SIMD Instruktionen.\\\\
+\textbf{[CUDA]} ist die "Computer Unified Device Architecture" von nVidia. CUDA arbeitet mit sogenannten \textbf{Kernels} welche auf der GPU laufen. Jeder Kernel bekommt Informationen darüber auf welchem Block er läuft (\textbf{blockIdx.x}), welcher Thread innerhalb des Blocks er ist (\textbf{threadIdx.x}) und wie gross ein Block ist (\textbf{blockDim.x}). Auch die \textbf{y} und \textbf{z} Dimensionen sind nutzbar. Als Programmierer muss man die Datenauteilung selber modellieren.
+\begin{lstlisting}[language=c]
+// vector addition kernel
+__global__
+void vecAKern(float *A, float *B,
+              float *C, int N) {
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  // bounds check
+  if(i < N) {
+    C[i] = A[i] + B[i];
+  }
+}
+\end{lstlisting}
+\textbf{[Das CUDA Memory Management]} kennt die drei wichtigen Funktionen \textbf{cudaMalloc}, \textbf{cudaFree} und \textbf{cudaMemcpy} welche ähnlich wie ihre C-Geschwister funktionieren. Mit \textbf{cudaMalloc} kann Speicher im \textbf{Device Global Memory} alloziert werden. \textbf{cudaFree} gibt allozierten Speicher auf dem Device wieder frei und \textbf{cudaMemcpy} wird verwendet um vom Host zum Device Daten zu kopieren.\\\\
+Das "CUDA-Grundgerüst" ohne Error Handling sieht in etwa so aus:
+\begin{lstlisting}[language=c]
+void CudaVAdd(float* A, float* B,
+              float* C, int N) {
+  size_t size = N * sizeof(float);
+  float *d_A, *d_B, *d_C;
+
+  cudaMalloc(&d_A, size);
+  cudaMalloc(&d_B, size);
+  cudaMalloc(&d_C, size);
+
+  cudaMemcpy(d_A, A, size,
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(d_B, B, size,
+             cudaMemcpyHostToDevice);
+  
+  int bDim = 512;
+  int gDim = (N + blockDim - 1) / blockDim;
+  vecAKern<<<gDim, bDim>>>(d_A, d_B, d_C, N);
+
+  cudaMemcpy(C, d_C, size,
+             cudaMemcpyDeviceToHost);
+
+  cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+}
+\end{lstlisting}
+\textbf{[CUDA Function Keywords]} sind \textbf{\_\_global\_\_}(läuft auf Device wird von Host aufgerufen), \textbf{\_\_device\_\_}(läuft auf Device und wird von Device aufgerufen) und \textbf{\_\_host\_\_}(läuft auf Host und wird auch vom Host aufgerufen).\\\\
+\textbf{[Die Launch-Configuration]} muss dynamisch bestimmt werden und sich am Problem und den Fähigkeiten des Device (ermittelt mit \textbf{cudaGetDeviceProperties()}) orientieren. Aus Effizienzgründen sollte die Blockgrösse ein Vielfaches von 32 sein (remember: 32 Threads per Warp, multiple Warps per Block). Die Blockgrösse sollte auch nicht zu gross gewählt werden, um die Anzahl der unnützen Threads zu minimieren. Die SM sollten voll ausgeschöpft werden (also ans Limit von Resident Blocks und Resident Threads gehen). Grosse Blöcke haben den vorteil, dass die Threads interagieren können.
 \end{multicols*}
 \end{document}
