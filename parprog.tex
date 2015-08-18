@@ -26,76 +26,66 @@
 \parindent0pt
 
 \begin{document}
-\begin{multicols*}{4}
+\begin{multicols*}{5}
 \huge{ParProg 2015}\\\\
 \textbf{[Java Thread]}
 In Java können Threads mittels Vererbung hergestellt werden. Hierzu gibt es die Basisklasse \textbf{Thread}. Beim ableiten des von der Klasse muss nur \textbf{public void run()} überschrieben werden. Für den Start des Thread muss dann die Methode \textbf{start()} aufgerufen werden. EIN AUFRUF VON \textbf{run()} WÜRDE BLOCKIEREN!
 \begin{lstlisting}[language=java]
-public class MyApp {
-  private static final class MyThread extends Thread {
-    public void run() {
-      do_something();
-    }
+class MyThread extends Thread {
+  public void run() {
+    do_something();
   }
-  //...
-  public static void main(String args[]) {
-    (new MyThread()).start();
-  }
+}
+//...
+public static void main(String args[]) {
+  (new MyThread()).start();
 }
 \end{lstlisting}
 Des Weiteren gibt es das \textbf{Runnable} Interface, welches ähnlich dem Thread funktioniert. Es von einer Klasse implementiert werden. Auch hier muss die Methode \textbf{public void run()} überschrieben werden. Jedoch muss dann eine Instanz der neuen Klasse der Klasse Thread im Konstruktor übergeben werden.
 \begin{lstlisting}[language=java]
-public class MyApp {
-  private static final class MyRunnable implements Runnable {
-    public void run() {
-      do_something();
-    }
+class MyRunnable implements Runnable {
+  public void run() {
+    do_something();
   }
-  //...
-  public static void main(String args[]) {
-    (new Thread(new MyRunnable())).start();
-  }
+}
+//...
+public static void main(String args[]) {
+  (new Thread(new MyRunnable())).start();
 }
 \end{lstlisting}
 \textbf{Lambdas} sind eine weitere Möglichkeit um einen Thread zu erstellen. Hier wird dem Konstruktor von \textbf{Thread} ein Lambda übergeben.
 \begin{lstlisting}[language=java]
-public class MyApp {
-  public static void main(String args[]) {
-    (new Thread(() -> {
-      do_something();
-    })).start();
-  }
+public static void main(String args[]) {
+  (new Thread(() -> {
+    do_something();
+  })).start();
 }
 \end{lstlisting}
 Eine vierte Möglichkeit wäre eine \textbf{anonyme innere Klasse}.
 \begin{lstlisting}[language=java]
-public class MyApp {
-  public static void main(String args[]) {
-    (new Thread(new Runnable() {
-      @Override
-      public void run() {
-        do_something();
-      }
-    })).start();
-  }
+public static void main(String args[]) {
+  (new Thread(new Runnable() {
+    @Override
+    public void run() {
+      do_something();
+    }
+  })).start();
 }
 \end{lstlisting}
 Eine spezielle Art von Threads sind \textbf{Daemon Threads}. Diese Threads verhindern nicht das beenden des Programms. Der \textbf{Garbage Collector} ist ein solcher Thread.
 \begin{lstlisting}[language=java]
-public class MyApp {
-  public static void main(String args[]) {
-    // ...
-    someThread.setDaemon(true);
-    someThread.start();
-    // Wait for user input
-    System.in.read();
-  }
+public static void main(String args[]) {
+  // ...
+  someThread.setDaemon(true);
+  someThread.start();
+  // Wait for user input
+  System.in.read();
 }
 \end{lstlisting}
 Mit \textbf{Runtime.getRuntime().availableProcessors()} kann man bestimmen wieviele Prozessoren in einem System vorhanden sind. Die maximale Anzahl Threads errechnet sich aus dem verfügbaren Speicher des Systems und der grösse eines Threads. z.B. entsprechen ca. 110'000 Threads auf Windows 64-Bit in etwa 7GB Speicher. Bei Mehr Threads beginnt das System zu swappen und wird langsam.\\\\
 \textbf{[synchronized]} Für einfachen (ineffizienten) \textbf{gegenseitigen Ausschluss} (mutual exclusion) gibt es das \textbf{synchronized} Schlüsselwort. Es muss vor dem Typ der Funktion angegeben werden. Der Auschluss via synchronized funktioniert mittels eines \textbf{Monitor-Locks} (siehe Monitor Object [POSA2]). Es kann immer nur ein Thread eine synchronized Methode auf einem Objekt ausführen. Alle anderen müssen warten \textbf{selbst wenn sie eine andere synchronized Methode aufrufen}. \textbf{synchronized} kann auch auf Block-level verwendet werden. Die Synchronisierung mittels \textbf{synchronized} ist \textbf{reentrant}, das heisst ein Thread kann mehrere \textbf{synchronized} Methoden verschachtelt aufrufen.
 \begin{lstlisting}[language=java]
-public class MyApp {
+public class MyClass {
   public synchronized void syncMethOne(){
     dangerous_things();
   }
@@ -116,7 +106,7 @@ Da jedes Objekt ein \textbf{Monitor Lock} besitzt kann auf jedem Objekt ge\textb
 \textbf{[Semphore]} sind "Zähler". Mit \textbf{acquire()} wird eine "Marke" entfernt, mit \textbf{release()} eine zurückgelegt. \textbf{acquire()} blockiert falls gerade keine "Marke" frei ist. \textbf{Semaphore} können fair sein (\textbf{new Semaphore(n, true)}) und folgen dan dem FIFO-Prinzip.\\\\
 \textbf{[Locks \& Conditions]} können verwendet werden um ähnliche Funktionalität wie beim \textbf{Monitor} zu erreichen, mit dem grossen Unterschied, dass hier die Wartebedingungen gezielt "notifiziert" (via \textbf{signal()}) werden können. Jedem \textbf{Lock} können mehrere \textbf{Conditions} zugeordnet sein auf welche Threads via \textbf{await()} warten können.
 \begin{lstlisting}[language=java]
-public class MyApp {
+public class MyClass {
   // fair lock
   private Lock mon = new ReentrantLock(true);
   // Conditions
@@ -152,7 +142,52 @@ public class MyApp {
 \textbf{[Phaser]} stellt eine verallgemeinerte \textbf{CyclicBarrier} dar. Mit \textbf{arriveAndAwaitAdvance()} wird auf die Freigabe gewartet. Threads können sich mit \textbf{register()} am Phaser an- und mit \textbf{arriveAndDeregister} abmelden.\\
 \textbf{[Exchanger]} bietet eine Möglichkeit zwischen zwei Threads Objekte auszutauschen. \textbf{exchange(obj1)} wartet bis der andere Thread auch \textbf{exchange(obj2)} aufgerufen hat.\\\\
 \textbf{[Race Conditions]} werden in \textbf{low-level (Data Race)} und \textbf{high-level (Semantic Race)} unterteilt. \textbf{Low-level} Races treten auf wenn unsynchronisiert auf den gleichen Speicher (Variable, Array-Element, ...) zugegriffen wird. \textbf{High-level} Races sind Race-Conditions in der Programmlogik. Sie Treten auf wenn die Critical-Sections nicht ausreichend geschützt sind.\\\\
-Auf Synchronisierung kann verzichtet werden wenn entweder \textbf{Unveränderlichkeit} (z.B Java final) gegeben ist oder veränderlich Objekte in breits synchnosierten Objekten eingesperrt sind (\textbf{Confinement}).
+Auf Synchronisierung kann verzichtet werden wenn entweder \textbf{Unveränderlichkeit} (z.B Java final) gegeben ist oder veränderlich Objekte in breits synchnosierten Objekten eingesperrt sind (\textbf{Confinement}).\\\\
+\textbf{[Collections]} aus \textbf{java.util} sind grundsätzlich nicht Threadsafe. Es gibt jedoch Thread-Safe-Collections in \textbf{java.util.concurrent}.\\\\
+\textbf{[Deadlocks]} treten auf wenn sich Threads gegenseitig sperren. Folgende Bedingungen müssen eintreten damit es einen Deadlock gibt: \textbf{Geschachtelte Locks} UND \textbf{Zyklische Warteabhängigkeiten} UND \textbf{Gegenseitiger Ausschluss} UND \textbf{Kein Timeout}. Deadlocks lassen sich durch Einführen einer \textbf{linearen Sperrordnung} oder \textbf{grobgranularer Sperrung} lösen.\\\\
+\textbf{[Starvation]} tritt ein wenn einem Thread immer wieder die Möglichkeit zu laufen "weggeschnappt" wird. Dies lässt sich durch \textbf{faire} Synchronisationsprimitiven lösen.\\\\
+\textbf{[Thread-Pools]} besitzen eine \textbf{Task Queue} in welcher Tasks eingereit und dann von einem freien \textbf{Worker Thread} bearbeitet werden. In Java erzeugt man \textbf{Thread Pools} mit der Factory Klasse \textbf{Executors}. Zur Auswahl stehen \textbf{newFixedThreadPool(nofThreads)}, \textbf{newChachedThreadPool()} (automatische Thread Zahl) und \textbf{newWorkStealingPool()}. Gesondert gibt es noch den \textbf{ForkJoinPool}, welcher es erlaubt rekursive Tasks zu formulieren. \textbf{Thread Pools} haben den Vorteil, dass nicht unnötig viele Threads erzeugt werden. Eine Einschränkung ist, dass Tasks nicht von einander abhängig sein dürfen da sonst eine \textbf{Deadlock}-Gefahr besteht. Tasks werden mittels des \textbf{Callable} Interfaces implementiert:
+\begin{lstlisting}[language=java]
+class CalcTask implements Callable<Integer> {
+  @Override
+  public Integer call() throws Exception {
+    int val = 42;
+    // long running stuff
+    return val;
+  }
+}
+
+ExecutorService pool =
+  Executors.newFixedThreadPool(2);
+Future<Integer> fut1, fut2;
+// ...
+fut1 = pool.submit(new CalcTask());
+fut2 = pool.submit(new CalcTask());
+// ...
+int res1 = fut1.get();
+int res2 = fut2.get();
+// ...
+pool.shutdown();
+\end{lstlisting}
+\textbf{[Futures]} repräsentieren Zukünftige Ergebnisse (sie sind Proxies im sinne des PROXY Patterns [GoF]) welche mittels \textbf{get()} abgeholt werden. \textbf{get()} blockiert bis das Ergebenis da ist! Wenn eine unbehandelte Exception aufgetreten ist liefert \textbf{get()} diese zurück geschachtelt in einer \textbf{ExecutionException}. Mittels \textbf{cancel()} kann ein Task aus der Warteschlange entfert werden (bricht aber nicht einfach den laufenden Task ab).\\\\
+\textbf{[Work Stealing]} ist ein verfahren das in Thread Pools eingesetzt wird bei welchem es eine \textbf{globale FIFO} Queue und für jeden Worker Thread eine \textbf{locale LIFO} Queue gibt. Tasks in der globalen Queue werden (per Default) "vernachlässigt" aber der Work Stealing Pool kann auch auf FIFO umgestellt werden.\\\\
+\textbf{[Asynchrone Aufrufe]} erlauben das Auslagern von langen Operationen auf einen anderen Thread oder Pool. Es gibt zwei ansätze: Caller-zentrisch (\textbf{pull}) und Callee-zentrisch (\textbf{push}). Pull setzt auf \textbf{Future} Objekte währen pull auf \textbf{Completion Callback}s setzt. Für Comletion Callbacks eignet sich als Interface zum Beispiel \textbf{java.util.function.Consumer}.
+\begin{lstlisting}[language=java]
+interface Consumer<T> {
+  void accept(T result);
+}
+// ...
+void asyncOp(int in, Consumer<Integer> cb) {
+  pool.submit(() -> {
+    Integer res = longOperation(in);
+    cb.accept(res);
+  });
+}
+// ...
+asyncOp(42, res -> {
+  System.out.println(res);
+});
+\end{lstlisting}
 \end{multicols*}
 
 \end{document}
