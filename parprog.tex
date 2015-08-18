@@ -391,5 +391,80 @@ for (int tile = 0; tile < nofTiles; tile++) {
   __syncthreads();
 }
 \end{lstlisting}
+\textbf{[Cluster]} weissen sehr spezielle Eigenschafen auf. Erstens gibt es nur \textbf{innerhalb eines Nodes} Shared Memory und nicht über die grenzen eines Nodes hinweg. Zweitens sind Cluster durch die grosse Anzahl von General Purpose CPUs sehr gut für "allgemeine" Rechenaufgaben geeignet. Im allgemeinen wird der Austausch von Informationen in Clustern mit \textbf{Dateien} oder über \textbf{Sockets} bewerkstellig.\\\\
+\textbf{[MPI]} ist die Abkürzung für \textbf{Message Passing Interface}. MPI basiert auf dem Actor- bzw. dem CSP-Modell. Es ist sehr gut für heterogene Umgebungen geeignet. MPI ist ein Industriestandard einer Bibliothek für Cluster-Anwendungen. MPI ist sogenanntes \textbf{SPMD} (Single Program Multiple Data), da jeder Node das gleiche Programm mit anderen Daten ausführt. Ein Beispiel in C:
+\begin{lstlisting}[language=c]
+#include <stdio.h>
+#include "mpi.h"
+
+int main(int argc, char* argv[]){
+  MPI_Init(&argc, &argv);
+
+  int rank;
+
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  printf("Process:%i", rank);
+
+  MPI_Finalize();
+
+  return 0;
+}
+\end{lstlisting}
+Und eines in .NET:
+\begin{lstlisting}[language=c++]
+using MPI;
+using System;
+class Program {
+  public static void Main(string[] args) {
+    using (new MPI.Environment(ref args)) {
+      int rank = Communicator.world.Rank;
+      Console.WriteLine("Process:{0}", rank);
+    }
+  }
+}
+\end{lstlisting}
+\textbf{[Kommunikation]} in MPI kann leicht über den \textbf{Communicator.world} erfolgen. Um direkt einem Node eine Nachricht zu senden verwendet man \textbf{world.Send(value, receiverRank, messageTag)}. Analog funktioniert das empfangen mit \textbf{world.Receive(senderRank, messageTag, out value)}. Nachrichten an alle können mit \textbf{world.Broadcast(ref value, senderRank)} abgesetzt UND empfangen werden.\textbf{Synchronisierung} kann mit \textbf{Communicator.world.Barrier()} erreicht werden. Alle Nodes warten darauf, dass alle die Barriere erreichen. Ergebnisse können mittels \textbf{Allreduce(T value, Op<T>)}(Broadcast) oder \textbf{Reduce(T value, Op<T>, int rank)}(ohne Brodcast) reduziert werden. Es existieren noch weitere Kommunikationsmöglichkeiten wie \textbf{outputArray = Alltoall(inputArray)}, \textbf{value = Scatter(array, rank)} oder \textbf{outputArray = Gather(value, rank)}.\\\\
+\textbf{[.NET PLINQ]} Via "Extension Methods":
+\begin{lstlisting}[language=c++]
+salesEurope.
+  Union(salesAsia).
+  Union(salesAmerica).
+
+GroupBy(item => item.Article,
+        item => item.Volume).
+
+Select(category => new {Key = category.Key,
+                        Value = category.Sum()}).
+
+Where(category => category.Value >= 1000);
+\end{lstlisting}
+oder mit der eingebetteten Syntax:
+\begin{lstlisting}[language=c++]
+from entry in
+  salesEurope.AsParallel().
+  Union(salesAsia.AsParallel()).
+  Union(salesAmerica.AsParallel())
+group
+  entry by entry.Article into category
+  let sum = category.Sum(e => e.Volume)
+where
+  sum >= 1000
+select
+  new { category.Key, sum };
+\end{lstlisting}
+In PLINQ ist die Reihenfolge der Resultate beliebig (Ordering ist opt-in \textbf{AsOrdered()}).\\\\
+\textbf{[Reactive Programming mit Rx.NET]} erlaubt das Reagieren auf eine aktive Quelle (\textbf{push}). Das System basiert auf dem Observer Pattern [GoF]. Um eine Pipeline zu bauen benötigt man ein \textbf{Subject} das sowohl \textbf{Observer} als auch \textbf{Observable} ist:
+\begin{lstlisting}[language=c++]
+var subject = new Subject<string>();
+
+subject.Subscribe(Console.WriteLine);
+
+subject.OnNext("A");
+subject.OnNext("B");
+subject.OnNext("C");
+
+subject.OnCompleted();
+\end{lstlisting}
 \end{multicols*}
 \end{document}
