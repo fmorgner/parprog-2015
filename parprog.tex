@@ -92,9 +92,8 @@ public class MyApp {
   }
 }
 \end{lstlisting}
-Mit \textbf{Runtime.getRuntime().availableProcessors()} kann man bestimmen wieviele Prozessoren in einem System vorhanden sind. Die maximale Anzahl Threads errechnet sich aus dem verfügbaren Speicher des Systems und der grösse eines Threads. z.B. entsprechen ca. 110'000 Threads auf Windows 64-Bit in etwa 7GB Speicher. Bei Mehr Threads beginnt das System zu swappen und wird langsam.\\
-\textbf[synchronized]\\
-Für einfachen (ineffizienten) \textbf{gegenseitigen Ausschluss} (mutual exclusion) gibt es das \textbf{synchronized} Schlüsselwort. Es muss vor dem Typ der Funktion angegeben werden. Der Auschluss via synchronized funktioniert mittels eines \textbf{Monitor-Locks} (siehe Monitor Object [POSA2]). Es kann immer nur ein Thread eine synchronized Methode auf einem Objekt ausführen. Alle anderen müssen warten \textbf{selbst wenn sie eine andere synchronized Methode aufrufen}. \textbf{synchronized} kann auch auf Block-level verwendet werden. Die Synchronisierung mittels \textbf{synchronized} ist \textbf{reentrant}, das heisst ein Thread kann mehrere \textbf{synchronized} Methoden verschachtelt aufrufen.
+Mit \textbf{Runtime.getRuntime().availableProcessors()} kann man bestimmen wieviele Prozessoren in einem System vorhanden sind. Die maximale Anzahl Threads errechnet sich aus dem verfügbaren Speicher des Systems und der grösse eines Threads. z.B. entsprechen ca. 110'000 Threads auf Windows 64-Bit in etwa 7GB Speicher. Bei Mehr Threads beginnt das System zu swappen und wird langsam.\\\\
+\textbf{[synchronized]} Für einfachen (ineffizienten) \textbf{gegenseitigen Ausschluss} (mutual exclusion) gibt es das \textbf{synchronized} Schlüsselwort. Es muss vor dem Typ der Funktion angegeben werden. Der Auschluss via synchronized funktioniert mittels eines \textbf{Monitor-Locks} (siehe Monitor Object [POSA2]). Es kann immer nur ein Thread eine synchronized Methode auf einem Objekt ausführen. Alle anderen müssen warten \textbf{selbst wenn sie eine andere synchronized Methode aufrufen}. \textbf{synchronized} kann auch auf Block-level verwendet werden. Die Synchronisierung mittels \textbf{synchronized} ist \textbf{reentrant}, das heisst ein Thread kann mehrere \textbf{synchronized} Methoden verschachtelt aufrufen.
 \begin{lstlisting}[language=java]
 public class MyApp {
   public synchronized void syncMethOne(){
@@ -120,6 +119,7 @@ Da jedes Objekt ein \textbf{Monitor Lock} besitzt kann auf jedem Objekt ge\textb
 public class MyApp {
   // fair lock
   private Lock mon = new ReentrantLock(true);
+  // Conditions
   private Condition con1 = mon.newCondition();
   private Condition con2 = mon.newCondition();
 
@@ -146,6 +146,13 @@ public class MyApp {
   }
 }
 \end{lstlisting}
+\textbf{[Read-Write-Locks]} erlauben feingranulares Sperren. Da es nicht nötig ist zu sperren wenn alle Threads \textbf{nur lesen} können beliebig viele Threads gleichzeitig ein \textbf{Read-Lock} halten, jedoch \textbf{nur einer} ein \textbf{Write-Lock}. \textbf{Read-Write-Locks} können NICHT geupgraded werden.\\\\
+\textbf{[CountdownLatch]} bietet einen "Einweg-Synchronisationspunkt". Bei der Initialisierung muss angegeben werden soll auf wieviele Threads gewartet wird. Threads verwenden \textbf{countDown()} auf dem Latch um den Zähler zu dekrementieren. Mit \textbf{await()} wird gewartet bis der Latch auf 0 ist. Der Latch kann nicht wiederverwendet werden.\\\\
+\textbf{[CyclicBarrier]} ist ähnlich wie \textbf{CountdownLatch}. Aber \textbf{CyclicBarrier} kann wiederverwendet werden und wird bei \textbf{await()} dekrementiert. \textbf{getParties()} kann verwendet werden um die Anzahl Teilnahmer der Barriere auszulesen.\\\\
+\textbf{[Phaser]} stellt eine verallgemeinerte \textbf{CyclicBarrier} dar. Mit \textbf{arriveAndAwaitAdvance()} wird auf die Freigabe gewartet. Threads können sich mit \textbf{register()} am Phaser an- und mit \textbf{arriveAndDeregister} abmelden.\\
+\textbf{[Exchanger]} bietet eine Möglichkeit zwischen zwei Threads Objekte auszutauschen. \textbf{exchange(obj1)} wartet bis der andere Thread auch \textbf{exchange(obj2)} aufgerufen hat.\\\\
+\textbf{[Race Conditions]} werden in \textbf{low-level (Data Race)} und \textbf{high-level (Semantic Race)} unterteilt. \textbf{Low-level} Races treten auf wenn unsynchronisiert auf den gleichen Speicher (Variable, Array-Element, ...) zugegriffen wird. \textbf{High-level} Races sind Race-Conditions in der Programmlogik. Sie Treten auf wenn die Critical-Sections nicht ausreichend geschützt sind.\\\\
+Auf Synchronisierung kann verzichtet werden wenn entweder \textbf{Unveränderlichkeit} (z.B Java final) gegeben ist oder veränderlich Objekte in breits synchnosierten Objekten eingesperrt sind (\textbf{Confinement}).
 \end{multicols*}
 
 \end{document}
