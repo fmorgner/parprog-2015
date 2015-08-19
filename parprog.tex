@@ -166,6 +166,34 @@ int res2 = fut2.get();
 // ...
 pool.shutdown();
 \end{lstlisting}
+\begin{lstlisting}[language=java]
+class MSTask extends RecursiveAction {
+  private static final int THRESHOLD = 1;
+  private int[] array;
+  private int p1, p2;
+
+  public MSTask(int[] array,int p1, int p2) {
+    this.p1 = p1; this.p2 = p2;
+    this.array = array;
+  }
+
+  @Override
+  public void compute() {
+    if (parameter > THRESHOLD) {
+      int mid = (p1+p2)/2;
+      MSTask t1 = new MSTask(array, p1, mid);
+      MSTask t2 = new MSTask(array, mid, p2);
+      invokeAll(t1, t2);
+      merge(array, p1, mid, p2);
+    } else {
+      mergeSort(array, p1, p2);
+    }
+  }
+}
+
+ForkJoinPool pool = new ForkJoinPool();
+pool.invoke(new MSTask(array, 0, array.length));
+\end{lstlisting}
 \textbf{[Futures]} repräsentieren zukünftige Ergebnisse (sie sind Proxies im Sinne des PROXY Patterns [GoF]) welche mittels \textbf{get()} abgeholt werden. \textbf{get()} blockiert, bis ein Ergebenis da ist! Beim Auftreten einer unbehandelten Exception liefert \textbf{get()} diese geschachtelt in einer \textbf{ExecutionException}. Mittels \textbf{cancel()} kann ein Task aus der Warteschlange entfert werden (bricht aber nicht den laufenden Task ab).\\\\
 \textbf{[Work Stealing]} ist ein Verfahren das bei Thread Pools eingesetzt wird bei welchem es eine \textbf{globale FIFO} Queue und für jeden Worker Thread eine \textbf{locale LIFO} Queue gibt. Tasks in der globalen Queue werden (per Default) "vernachlässigt" aber der Work Stealing Pool kann auch auf FIFO umgestellt werden.\\\\
 \textbf{[Asynchrone Aufrufe]} erlauben das Auslagern von langen Operationen auf einen anderen Thread oder Pool. Es gibt zwei Ansätze: Caller-zentrisch (\textbf{pull}) und Callee-zentrisch (\textbf{push}). Pull setzt auf \textbf{Future} Objekte während pull auf \textbf{Completion Callbacks} setzt. Für Completion Callbacks eignet sich als Interface, z.B. \textbf{java.util.function.Consumer}.
@@ -418,13 +446,10 @@ class Program {
 salesEurope.
   Union(salesAsia).
   Union(salesAmerica).
-
 GroupBy(item => item.Article,
         item => item.Volume).
-
 Select(category => new {Key = category.Key,
                         Value = category.Sum()}).
-
 Where(category => category.Value >= 1000);
 \end{lstlisting}
 oder mit der eingebetteten Syntax:
