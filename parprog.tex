@@ -77,7 +77,8 @@ public static void main(String args[]) {
   // ...
   someThread.setDaemon(true);
   someThread.start();
-  // Wait for user input, otherwise program will stop
+  // wait for user input
+  // otherwise program will stop
   System.in.read();
 }
 \end{lstlisting}
@@ -310,8 +311,8 @@ do {
   newV = calcChanges(oldV);
 } while (!var.compareAndSet(oldV, newV));
 \end{lstlisting}
-Das \textbf{[ABA-Problem]} beschreibt, was passiert wenn ein anderer Thread dazwischen schreibt und sich der zu vergleichende Wert scheinbar nicht ändert. Dies ist besonders bei lockfreien Datenstrukturen wie Stacks und Listen ungünstig.
-\textbf{[Das .NET Memory Model]} unterscheided sich vom Java Memory Model darin, dass long und double auch mit \textbf{volatile} nicht atomar sind. Auch die Visibility ist nicht explizit definiert, da sie durch das Ordering gegeben ist. Beim Ordering ist es wichtig, dass \textbf{volatile} in .NET nur ein "Partial Fence" ist.
+Das \textbf{[ABA-Problem]} beschreibt, was passiert wenn ein anderer Thread dazwischen schreibt und sich der zu vergleichende Wert scheinbar nicht ändert. Dies ist besonders bei lockfreien Datenstrukturen wie Stacks und Listen ungünstig.\\\\
+\textbf{[Das .NET Memory Model]} unterscheided sich vom Java Memory Model darin, dass long und double auch mit \textbf{volatile} nicht atomar sind. Auch die Visibility ist nicht explizit definiert, da sie durch das Ordering gegeben ist. Beim Ordering ist es wichtig, dass \textbf{volatile} in .NET nur ein "Partial Fence" ist.\\\\
 \textbf{[volatile in .NET]} verfolgt beim Lesen die sogenannte \textbf{Acquire-Semantik}, was bedeutet, dass alles was \textbf{VOR dem LESEN} einer volatile Variable nach "unten" optimiert werden darf. Beim Schreiben wird die \textbf{Release-Semantik} angewandt: alles was \textbf{NACH dem SCHREIBEN} kommt, darf nach oben optimiert werden. Da diese Semantik of ungenügend ist, gibt es mit \textbf{Thread.MemoryBarrier()} einen "Full-Fence".\\\\
 \textbf{[GPU Vokabular]}: Eine GPU besteht aus mehreren \textbf{Streaming Multiprocessors (SM)}. Jeder SM besteht aus mehreren \textbf{Streaming Processors (SP)}. In CUDA sind Threads in \textbf{Blöcke} zusammengefasst. Jeder SM kann mehrere Blöcke beherbergen, jeder Block ist intern in \textbf{Warp}s zu je 32 Threads zerlegt.\\\\
 \textbf{[SIMD]} ist die Abkürzung für "Single Instruction Multiple Data". Dies entspricht dem Paradigma der Verktorparallelität. GPUs sind inherent für SIMD-Applikationen geeignet, denn innerhalb eines SM führen alle Cores die gleiche Instruktion auf unterschiedlichen Daten aus. Es gibt auch in CPU begrenzt mächtige SIMD-Instruktionen.\\\\
@@ -328,8 +329,7 @@ void vecAKern(float *A, float *B,
   }
 }
 \end{lstlisting}
-Das \textbf{[CUDA Memory Management]} kennt die drei wichtigen Funktionen \textbf{cudaMalloc}, \textbf{cudaFree} und \textbf{cudaMemcpy} welche ähnlich wie ihre C-Geschwister funktionieren. Mit \textbf{cudaMalloc} kann Speicher im \textbf{Device Global Memory} alloziert werden. \textbf{cudaFree} gibt allozierten Speicher auf dem Device wieder frei und \textbf{cudaMemcpy} wird verwendet um Daten vom Host zum Device zu kopieren.\\\\
-Das "CUDA-Grundgerüst" ohne Error Handling sieht in etwa so aus:
+Das \textbf{[CUDA Memory Management]} kennt die drei wichtigen Funktionen \textbf{cudaMalloc}, \textbf{cudaFree} und \textbf{cudaMemcpy} welche ähnlich wie ihre C-Geschwister funktionieren. Mit \textbf{cudaMalloc} kann Speicher im \textbf{Device Global Memory} alloziert werden. \textbf{cudaFree} gibt allozierten Speicher auf dem Device wieder frei und \textbf{cudaMemcpy} wird verwendet um Daten vom Host zum Device zu kopieren. Das "CUDA-Grundgerüst" ohne Error Handling sieht in etwa so aus:
 \begin{lstlisting}[language=c]
 void CudaVAdd(float* A, float* B,
               float* C, int N) {
