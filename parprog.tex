@@ -134,7 +134,7 @@ public class MyClass {
 }
 \end{lstlisting}
 \textbf{[Read-Write-Locks]} erlauben feingranulares Sperren. Da Sperren nicht nötig ist wenn alle Threads \textbf{nur lesen}, können beliebig viele Threads gleichzeitig ein \textbf{Read-Lock} halten, jedoch \textbf{nur einer} ein \textbf{Write-Lock}. \textbf{Read-Write-Locks} können NICHT geupgraded werden.\\\\
-\textbf{[CountdownLatch]} bietet einen "Einweg-Synchronisationspunkt". Bei der Initialisierung muss angegeben werden, auf wieviele Threads gewartet wird. Threads verwenden \textbf{countDown()} auf dem Latch um den Zähler zu dekrementieren. Mit \textbf{await()} wird gewartet bis der Latch auf 0 ist. Der Latch kann nicht wiederverwendet werden.\\\\
+\textbf{[CountdownLatch]} bietet einen "Einweg-Synchronisationspunkt". Bei der Initialisierung muss angegeben werden, auf wieviele Threads gewartet werden soll. Threads verwenden \textbf{countDown()} auf dem Latch um den Zähler zu dekrementieren. Mit \textbf{await()} wird gewartet bis der Latch auf 0 ist. Der Latch kann nicht wiederverwendet werden.\\\\
 \textbf{[CyclicBarrier]} ist ähnlich wie \textbf{CountdownLatch}, kann aber wiederverwendet werden. Sie wird bei \textbf{await()} dekrementiert; \textbf{getParties()} ermittelt die Anzahl Teilnahmer der Barriere.\\\\
 \textbf{[Phaser]} stellt eine verallgemeinerte \textbf{CyclicBarrier} dar. Mit \textbf{arriveAndAwaitAdvance()} wird auf die Freigabe gewartet. Threads können sich mit \textbf{register()} am Phaser an- und mit \textbf{arriveAndDeregister} abmelden.\\
 \textbf{[Exchanger]} ermöglicht es, zwischen zwei Threads Objekte auszutauschen. \textbf{exchange(obj1)} wartet, bis der andere Thread auch \textbf{exchange(obj2)} aufgerufen hat.\\\\
