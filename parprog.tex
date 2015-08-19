@@ -100,6 +100,7 @@ public class MyClass {
 }
 \end{lstlisting}
 Da jedes Objekt ein \textbf{Monitor Lock} besitzt kann auf jedem Objekt ge\textbf{synchronized} werden (also auch auf Member-Objekten). Bedingungen sollten in \textbf{synchronized} Methoden mit \textbf{while} geprüft werden, da sonst die Gefahr besteht dass man fälschlicherweise weitermacht. Warten kann man mit \textbf{wait()} und notifizieren mit \textbf{notify} und \textbf{notifyAll()} wobei \textbf{notify()} \textbf{irgendeinen (!!!) wartenden Thread} weckt. FAUSTREGEL: Bei unterschiedlichen Wartebedingungen mit \textbf{notifyAll()} wecken.\\\\
+Vorsicht: Sobald \textbf{wait()} benutzt wird, muss die \textbf{throws InterruptedException} verwendet werden.\\\\
 \textbf{[Semphore]} sind "Zähler". Mit \textbf{acquire()} wird eine "Marke" entfernt, mit \textbf{release()} eine zurückgelegt. \textbf{acquire()} blockiert, falls gerade keine "Marke" frei ist. \textbf{Semaphore} können fair sein (\textbf{new Semaphore(n, true)}) und folgen dan dem FIFO-Prinzip.\\\\
 \textbf{[Locks \& Conditions]} können verwendet werden um ähnliche Funktionalität wie beim \textbf{Monitor} zu erreichen, mit dem grossen Unterschied, dass hier die Wartebedingungen gezielt "notifiziert" (via \textbf{signal()}) werden können. Jedem \textbf{Lock} können mehrere \textbf{Conditions} zugeordnet sein, auf welche Threads via \textbf{await()} warten können.
 \begin{lstlisting}[language=java]
@@ -281,6 +282,16 @@ class MainClass {
   }
 }
 \end{lstlisting}
+Beispiel für UI-Thread-Dispatching:
+\begin{lstlisting}[language=java]
+threadPool.submit( () -> {
+ longOperation(); // in different thread
+ SwingUtilities.invokeLater(() -> {
+  // in UI thread again b/c label
+  someLabel.setText("Done!");
+ });
+});
+\end{lstlisting}
 Das \textbf{[Java Memory Model]} garantiert Atomicity für \textbf{Lese-/Schreiboperationen} bis 32-Bit (mit \textbf{volatile} auch für long und double) und auf Referenzen. Visibility ist bei Locks \textbf{Release/Acquire} garantiert (Änderungen \textbf{vor} Release werden bei Acquire sichtbar). Bei \textbf{volatile} Variablen werden alle vorhergehenden Änderungen beim Zugriff sichtbar. \textbf{final}-Variablen werden nach dem Ende des Konstruktors sichtbar. Sichtbarkeit ist auch bei Thread-Start und -Join sowie Task-Start und -Ende garantiert.\\\\
 \textbf{[volatile in JAVA]} garantiert, dass kein Reordering über einen Zugriff (lesend oder schreibend) auf eine derart markierte Variable hinaus statt findet. Das Ordering vor und nach \textbf{volatile} folgt innerhalb eines Threads der "As-If-Serial"-Sematik. Das heisst, der Compiler darf optimieren, falls die Semantik INNERHALB des Threads gleich bleibt. Zwischen Threads ist Ordering nur bei Zugriffen auf \textbf{volatile}-Variablen und bei Synchronisationsbefehlen garantiert. \textbf{volatile} Zugriffe führen nicht zu locking.\\\\
 \textbf{[Atomare Operationen]} erlauben das atomare Ändern einer Variable mit einer zusätzlichen Operation (meistens return des alten Werts). Es gibt für Atomare Klassen für Boolean, Integer, Long und Referenzen (auch für Array-Elemente). Seit Java 8 gibt es auf diesen sogar Operationen welche ein "Expression-Lambda" nehmen. \textbf{Atomare Operationen} garantieren Ordering und Visibility. Beispiele für atomare Operationen sind \textbf{getAndSet(newVal)}, \textbf{getAndAdd(delta)} und \textbf{updateAndGet(lambda)}.
@@ -316,13 +327,14 @@ Das \textbf{[ABA-Problem]} beschreibt, was passiert wenn ein anderer Thread dazw
 \textbf{[GPU Vokabular]}: Eine GPU besteht aus mehreren \textbf{Streaming Multiprocessors (SM)}. Jeder SM besteht aus mehreren \textbf{Streaming Processors (SP)}. In CUDA sind Threads in \textbf{Blöcke} zusammengefasst. Jeder SM kann mehrere Blöcke beherbergen, jeder Block ist intern in \textbf{Warp}s zu je 32 Threads zerlegt.\\\\
 \textbf{[SIMD]} ist die Abkürzung für "Single Instruction Multiple Data". Dies entspricht dem Paradigma der Verktorparallelität. GPUs sind inherent für SIMD-Applikationen geeignet, denn innerhalb eines SM führen alle Cores die gleiche Instruktion auf unterschiedlichen Daten aus. Es gibt auch in CPU begrenzt mächtige SIMD-Instruktionen.\\\\
 \textbf{[CUDA]} ist die "Computer Unified Device Architecture" von NVIDIA. CUDA arbeitet mit sogenannten \textbf{Kernels} welche auf der GPU laufen. Jeder Kernel bekommt Informationen darüber, auf welchem Block er läuft (\textbf{blockIdx.x}), welcher Thread innerhalb des Blocks er ist (\textbf{threadIdx.x}) und wie gross ein Block ist (\textbf{blockDim.x}). Auch die \textbf{y}- und \textbf{z}-Dimensionen sind nutzbar. Als Programmierer muss man die Datenaufteilung selber modellieren.
+\textbf{Divergenz} heisst, dass im selben Warp unterschiedliche Instruktionen vorhanden sind (z.B. via if/else). Dies bewirkt, dass je für die "if"- und "else"-Elemente ein Cycle gebraucht wird --> Performance-Probleme.
 \begin{lstlisting}[language=c]
 // vector addition kernel
 __global__
 void vecAKern(float *A, float *B,
               float *C, int N) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
-  // bounds check
+  // bounds check, array can end before block!
   if(i < N) {
     C[i] = A[i] + B[i];
   }
@@ -345,8 +357,10 @@ void CudaVAdd(float* A, float* B,
   cudaMemcpy(d_B, B, size,
              cudaMemcpyHostToDevice);
   
-  int bDim = 512;
-  int gDim = (N + blockDim - 1) / blockDim;
+  // for 2/3 dimensions: dim3 gDim(32, 32);
+  int bDim = 512; // block size
+  int gDim = (N + bDim - 1) / bDim; // grid size
+  
   vecAKern<<<gDim, bDim>>>(d_A, d_B, d_C, N);
 
   cudaMemcpy(C, d_C, size,
