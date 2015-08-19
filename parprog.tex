@@ -28,7 +28,7 @@
 \begin{document}
 \begin{multicols*}{5}
 \textbf{[Java Thread]}
-In Java können Threads mittels Vererbung hergestellt werden. Hierzu gibt es die Basisklasse \textbf{Thread}. Beim ableiten des von der Klasse muss nur \textbf{public void run()} überschrieben werden. Für den Start des Thread muss dann die Methode \textbf{start()} aufgerufen werden. EIN AUFRUF VON \textbf{run()} WÜRDE BLOCKIEREN!
+In Java können Threads mittels Vererbung hergestellt werden. Hierzu gibt es die Basisklasse \textbf{Thread}. Beim Ableiten von der Klasse muss nur \textbf{public void run()} überschrieben werden. Um den Thread zu starten muss dann die Methode \textbf{start()} aufgerufen werden. EIN AUFRUF VON \textbf{run()} WÜRDE BLOCKIEREN!
 \begin{lstlisting}[language=java]
 class MyThread extends Thread {
   public void run() {
@@ -40,7 +40,7 @@ public static void main(String args[]) {
   (new MyThread()).start();
 }
 \end{lstlisting}
-Des Weiteren gibt es das \textbf{Runnable} Interface, welches ähnlich dem Thread funktioniert. Es von einer Klasse implementiert werden. Auch hier muss die Methode \textbf{public void run()} überschrieben werden. Jedoch muss dann eine Instanz der neuen Klasse der Klasse Thread im Konstruktor übergeben werden.
+Des Weiteren gibt es das \textbf{Runnable} Interface, welches ähnlich dem Thread funktioniert. Es kann von einer Klasse implementiert werden. Auch hier muss die Methode \textbf{public void run()} überschrieben werden. Jedoch muss dann eine Instanz der neuen Klasse der Klasse Thread im Konstruktor übergeben werden.
 \begin{lstlisting}[language=java]
 class MyRunnable implements Runnable {
   public void run() {
@@ -71,7 +71,7 @@ public static void main(String args[]) {
   })).start();
 }
 \end{lstlisting}
-Eine spezielle Art von Threads sind \textbf{Daemon Threads}. Diese Threads verhindern nicht das beenden des Programms. Der \textbf{Garbage Collector} ist ein solcher Thread.
+Eine spezielle Art von Threads sind \textbf{Daemon Threads}. Diese Threads verhindern das Beenden des Programms nicht. Der \textbf{Garbage Collector} ist ein solcher Thread.
 \begin{lstlisting}[language=java]
 public static void main(String args[]) {
   // ...
@@ -81,7 +81,7 @@ public static void main(String args[]) {
   System.in.read();
 }
 \end{lstlisting}
-Mit \textbf{Runtime.getRuntime().availableProcessors()} kann man bestimmen wieviele Prozessoren in einem System vorhanden sind. Die maximale Anzahl Threads errechnet sich aus dem verfügbaren Speicher des Systems und der grösse eines Threads. z.B. entsprechen ca. 110'000 Threads auf Windows 64-Bit in etwa 7GB Speicher. Bei Mehr Threads beginnt das System zu swappen und wird langsam.\\\\
+Mit \textbf{Runtime.getRuntime().availableProcessors()} kann man bestimmen wieviele Prozessoren in einem System vorhanden sind. Die maximale Anzahl Threads errechnet sich aus dem verfügbaren Speicher des Systems und der Grösse eines Threads. z.B. entsprechen ca. 110'000 Threads auf Windows 64-Bit in etwa 7GB Speicher. Bei nehr Threads beginnt das System zu swappen und wird langsam.\\\\
 \textbf{[synchronized]} Für einfachen (ineffizienten) \textbf{gegenseitigen Ausschluss} (mutual exclusion) gibt es das \textbf{synchronized} Schlüsselwort. Es muss vor dem Typ der Funktion angegeben werden. Der Auschluss via synchronized funktioniert mittels eines \textbf{Monitor-Locks} (siehe Monitor Object [POSA2]). Es kann immer nur ein Thread eine synchronized Methode auf einem Objekt ausführen. Alle anderen müssen warten \textbf{selbst wenn sie eine andere synchronized Methode aufrufen}. \textbf{synchronized} kann auch auf Block-level verwendet werden. Die Synchronisierung mittels \textbf{synchronized} ist \textbf{reentrant}, das heisst ein Thread kann mehrere \textbf{synchronized} Methoden verschachtelt aufrufen.
 \begin{lstlisting}[language=java]
 public class MyClass {
@@ -101,7 +101,7 @@ public class MyClass {
   }
 }
 \end{lstlisting}
-Da jedes Objekt ein \textbf{Monitor Lock} besitzt kann auf jedem Objekt ge\textbf{synchronized} werden (also auch auf Member-Objekten). Bedingungen sollten in \textbf{synchronized} Methoden mit \textbf{while} geprüft werden da sonst die gefahr besteht dass man fälschlicher Weisse weiter macht. Warten kann man mit \textbf{wait()} und notifizieren mit \textbf{notify} und \textbf{notifyAll()} wobei \textbf{notify()} \textbf{irgendeinen (!!!) wartenden Thread} weckt. FAUSTREGEL: Bei unterschiedlichen Wartebedingungen mit \textbf{notifyAll()} wecken.\\\\
+Da jedes Objekt ein \textbf{Monitor Lock} besitzt kann auf jedem Objekt ge\textbf{synchronized} werden (also auch auf Member-Objekten). Bedingungen sollten in \textbf{synchronized} Methoden mit \textbf{while} geprüft werden da sonst die Gefahr besteht, dass man fälschlicherweise weiter macht. Warten kann man mit \textbf{wait()} und notifizieren mit \textbf{notify} oder \textbf{notifyAll()} wobei \textbf{notify()} \textbf{irgendeinen (!!!) wartenden Thread} weckt. FAUSTREGEL: Bei unterschiedlichen Wartebedingungen mit \textbf{notifyAll()} wecken.\\\\
 \textbf{[Semphore]} sind "Zähler". Mit \textbf{acquire()} wird eine "Marke" entfernt, mit \textbf{release()} eine zurückgelegt. \textbf{acquire()} blockiert falls gerade keine "Marke" frei ist. \textbf{Semaphore} können fair sein (\textbf{new Semaphore(n, true)}) und folgen dan dem FIFO-Prinzip.\\\\
 \textbf{[Locks \& Conditions]} können verwendet werden um ähnliche Funktionalität wie beim \textbf{Monitor} zu erreichen, mit dem grossen Unterschied, dass hier die Wartebedingungen gezielt "notifiziert" (via \textbf{signal()}) werden können. Jedem \textbf{Lock} können mehrere \textbf{Conditions} zugeordnet sein auf welche Threads via \textbf{await()} warten können.
 \begin{lstlisting}[language=java]
@@ -136,13 +136,13 @@ public class MyClass {
 }
 \end{lstlisting}
 \textbf{[Read-Write-Locks]} erlauben feingranulares Sperren. Da es nicht nötig ist zu sperren wenn alle Threads \textbf{nur lesen} können beliebig viele Threads gleichzeitig ein \textbf{Read-Lock} halten, jedoch \textbf{nur einer} ein \textbf{Write-Lock}. \textbf{Read-Write-Locks} können NICHT geupgraded werden.\\\\
-\textbf{[CountdownLatch]} bietet einen "Einweg-Synchronisationspunkt". Bei der Initialisierung muss angegeben werden soll auf wieviele Threads gewartet wird. Threads verwenden \textbf{countDown()} auf dem Latch um den Zähler zu dekrementieren. Mit \textbf{await()} wird gewartet bis der Latch auf 0 ist. Der Latch kann nicht wiederverwendet werden.\\\\
+\textbf{[CountdownLatch]} bietet einen "Einweg-Synchronisationspunkt". Bei der Initialisierung muss angegeben werden auf wieviele Threads gewartet werden soll. Threads verwenden \textbf{countDown()} auf dem Latch um den Zähler zu dekrementieren. Mit \textbf{await()} wird gewartet bis der Latch auf 0 ist. Der Latch kann nicht wiederverwendet werden.\\\\
 \textbf{[CyclicBarrier]} ist ähnlich wie \textbf{CountdownLatch}. Aber \textbf{CyclicBarrier} kann wiederverwendet werden und wird bei \textbf{await()} dekrementiert. \textbf{getParties()} kann verwendet werden um die Anzahl Teilnahmer der Barriere auszulesen.\\\\
 \textbf{[Phaser]} stellt eine verallgemeinerte \textbf{CyclicBarrier} dar. Mit \textbf{arriveAndAwaitAdvance()} wird auf die Freigabe gewartet. Threads können sich mit \textbf{register()} am Phaser an- und mit \textbf{arriveAndDeregister} abmelden.\\
 \textbf{[Exchanger]} bietet eine Möglichkeit zwischen zwei Threads Objekte auszutauschen. \textbf{exchange(obj1)} wartet bis der andere Thread auch \textbf{exchange(obj2)} aufgerufen hat.\\\\
 \textbf{[Race Conditions]} werden in \textbf{low-level (Data Race)} und \textbf{high-level (Semantic Race)} unterteilt. \textbf{Low-level} Races treten auf wenn unsynchronisiert auf den gleichen Speicher (Variable, Array-Element, ...) zugegriffen wird. \textbf{High-level} Races sind Race-Conditions in der Programmlogik. Sie Treten auf wenn die Critical-Sections nicht ausreichend geschützt sind.\\\\
-Auf Synchronisierung kann verzichtet werden wenn entweder \textbf{Unveränderlichkeit} (z.B Java final) gegeben ist oder veränderlich Objekte in breits synchnosierten Objekten eingesperrt sind (\textbf{Confinement}).\\\\
-\textbf{[Collections]} aus \textbf{java.util} sind grundsätzlich nicht Threadsafe. Es gibt jedoch Thread-Safe-Collections in \textbf{java.util.concurrent}.\\\\
+Auf Synchronisierung kann verzichtet werden wenn entweder \textbf{Unveränderlichkeit} (z.B Java final) gegeben ist oder veränderlich Objekte in breits synchronisierten Objekten eingesperrt sind (\textbf{Confinement}).\\\\
+\textbf{[Collections]} aus \textbf{java.util} sind grundsätzlich nicht tThreadsafe. Es gibt jedoch Thread-Safe-Collections in \textbf{java.util.concurrent}.\\\\
 \textbf{[Deadlocks]} treten auf wenn sich Threads gegenseitig sperren. Folgende Bedingungen müssen eintreten damit es einen Deadlock gibt: \textbf{Geschachtelte Locks} UND \textbf{Zyklische Warteabhängigkeiten} UND \textbf{Gegenseitiger Ausschluss} UND \textbf{Kein Timeout}. Deadlocks lassen sich durch Einführen einer \textbf{linearen Sperrordnung} oder \textbf{grobgranularer Sperrung} lösen.\\\\
 \textbf{[Starvation]} tritt ein wenn einem Thread immer wieder die Möglichkeit zu laufen "weggeschnappt" wird. Dies lässt sich durch \textbf{faire} Synchronisationsprimitiven lösen.\\\\
 \textbf{[Thread-Pools]} besitzen eine \textbf{Task Queue} in welcher Tasks eingereit und dann von einem freien \textbf{Worker Thread} bearbeitet werden. In Java erzeugt man \textbf{Thread Pools} mit der Factory Klasse \textbf{Executors}. Zur Auswahl stehen \textbf{newFixedThreadPool(nofThreads)}, \textbf{newChachedThreadPool()} (automatische Thread Zahl) und \textbf{newWorkStealingPool()}. Gesondert gibt es noch den \textbf{ForkJoinPool}, welcher es erlaubt rekursive Tasks zu formulieren. \textbf{Thread Pools} haben den Vorteil, dass nicht unnötig viele Threads erzeugt werden. Eine Einschränkung ist, dass Tasks nicht von einander abhängig sein dürfen da sonst eine \textbf{Deadlock}-Gefahr besteht. Der \textbf{ForkJoinPool} setzt im Gegensatz zu den anderen Pools \textbf{Daemon Thread}s ein. Tasks werden mittels des \textbf{Callable} Interfaces implementiert:
@@ -167,9 +167,9 @@ int res2 = fut2.get();
 // ...
 pool.shutdown();
 \end{lstlisting}
-\textbf{[Futures]} repräsentieren Zukünftige Ergebnisse (sie sind Proxies im sinne des PROXY Patterns [GoF]) welche mittels \textbf{get()} abgeholt werden. \textbf{get()} blockiert bis das Ergebenis da ist! Wenn eine unbehandelte Exception aufgetreten ist liefert \textbf{get()} diese zurück geschachtelt in einer \textbf{ExecutionException}. Mittels \textbf{cancel()} kann ein Task aus der Warteschlange entfert werden (bricht aber nicht einfach den laufenden Task ab).\\\\
-\textbf{[Work Stealing]} ist ein verfahren das in Thread Pools eingesetzt wird bei welchem es eine \textbf{globale FIFO} Queue und für jeden Worker Thread eine \textbf{locale LIFO} Queue gibt. Tasks in der globalen Queue werden (per Default) "vernachlässigt" aber der Work Stealing Pool kann auch auf FIFO umgestellt werden.\\\\
-\textbf{[Asynchrone Aufrufe]} erlauben das Auslagern von langen Operationen auf einen anderen Thread oder Pool. Es gibt zwei ansätze: Caller-zentrisch (\textbf{pull}) und Callee-zentrisch (\textbf{push}). Pull setzt auf \textbf{Future} Objekte währen pull auf \textbf{Completion Callback}s setzt. Für Comletion Callbacks eignet sich als Interface zum Beispiel \textbf{java.util.function.Consumer}.
+\textbf{[Futures]} repräsentieren zukünftige Ergebnisse (sie sind Proxies im Sinne des PROXY Patterns [GoF]) welche mittels \textbf{get()} abgeholt werden. \textbf{get()} blockiert bis das Ergebenis da ist! Wenn eine unbehandelte Exception aufgetreten ist liefert \textbf{get()} diese geschachtelt in einer \textbf{ExecutionException} zurück. Mittels \textbf{cancel()} kann ein Task aus der Warteschlange entfert werden (bricht aber nicht einfach den laufenden Task ab).\\\\
+\textbf{[Work Stealing]} ist ein Verfahren das in Thread Pools eingesetzt wird bei welchem es eine \textbf{globale FIFO} Queue und für jeden Worker Thread eine \textbf{locale LIFO} Queue gibt. Tasks in der globalen Queue werden (per Default) "vernachlässigt" aber der Work Stealing Pool kann auch auf FIFO umgestellt werden.\\\\
+\textbf{[Asynchrone Aufrufe]} erlauben das Auslagern von langen Operationen auf einen anderen Thread oder Pool. Es gibt zwei Ansätze: Caller-zentrisch (\textbf{pull}) und Callee-zentrisch (\textbf{push}). Pull setzt auf \textbf{Future} Objekte während pull auf \textbf{Completion Callback}s setzt. Für Completion Callbacks eignet sich als Interface zum Beispiel \textbf{java.util.function.Consumer}.
 \begin{lstlisting}[language=java]
 interface Consumer<T> {
   void accept(T result);
@@ -216,7 +216,7 @@ myThread.Join();
 \end{lstlisting}
 Im Gegensatz zu Java 8 können in .NET Lambdas auch \textbf{non-final} Variablen aus dem umgebenden Scope (via Referenzen) zugegriffen werden (AUCH SCHREIBEND!!!) was die Chance auf \textbf{low-level} Races erhöht.\\\\
 \textbf{[Delegates]} sind vergleichbar mit Funktionszeigern welche ein implizites \textbf{this} besitzen. Sie sind damit leichgewichtiger als Java Interfaces, da sie keine Vererbungshierarchie aufweisen. Lambdas sind im Prinzip eine Abbildung von Delegates.\\\\
-\textbf{[Monitor]} ist in .NET mittels des Schlüsselworts \textbf{lock} verfügbar, welches ähnlich wie \textbf{synchronized} vor einen Block gehängt wird. Als Best-Practice hat es sich eingebürgert ein Hilfsobjekt und nicht das eigene Objekt zu sperren. Zum warten und benachrichten werden \textbf{Monitor.Wait(lock)}, \textbf{Monitor.Pulse()} und \textbf{Monitor.PulseAll()} verwendet. Der .NET Monitor ist fair und \textbf{Pulse()} weckt immer den Thread der schon am längsten wartet.
+\textbf{[Monitor]} ist in .NET mittels des Schlüsselworts \textbf{lock} verfügbar, welches ähnlich wie \textbf{synchronized} vor einen Block gehängt wird. Als Best-Practice hat es sich eingebürgert ein Hilfsobjekt und nicht das eigene Objekt zu sperren. Um zu Warten oder zu Benachrichtigen werden \textbf{Monitor.Wait(lock)}, \textbf{Monitor.Pulse()} und \textbf{Monitor.PulseAll()} verwendet. Der .NET Monitor ist fair und \textbf{Pulse()} weckt immer den Thread der schon am längsten wartet.
 \begin{lstlisting}[language=c++]
 class Account {
   // ...
@@ -231,8 +231,8 @@ class Account {
   }
 }
 \end{lstlisting}
-\textbf{[Andere Primitiven]} in .NET sind analog zu Java, ausser \textbf{Locks \& Conditions} welche fehlen und auch die fehelenden Fairness Flags. Dazu kommen \textbf{ReadWriteLockSlim} (upgradable), \textbf{Mutex} (binärer Semaphor) und speziellere. \textbf{Ausser} den Collections in \textbf{System.Collections.Concurrent} sind alle Collection NICHT Threadsafe.\\\\
-\textbf{[TPL]} (Task Parallel Library) ist ein \textbf{Work Stealing Thread Pool} mit versciedenen Abstraktionsebenen (Task Parallelism, Data Parallelism, Asynchronous Programming with Continuations). Die \textbf{TPL} erkennt geschachtelte Task selber und es sind keine "speziellen" Vorkehrungen zu treffen. Des Weiteren spawned die \textbf{TPL} selber neue Threads wenn sie merkt das alle Threads blockiert sind. ACHTUNG: \textbf{TPL} Threads sind Background Threads (analog Java Daemon Threads). Via \textbf{ThreadPool.SetMaxThreads()} kann die maximale Anzahl Threads festgelegt werden -> \textbf{Deadlock}-Gefahr
+\textbf{[Andere Primitiven]} in .NET sind analog zu Java, ausser den fehlenden \textbf{Locks \& Conditions} und den  fehlenden Fairness Flags. Dazu kommen \textbf{ReadWriteLockSlim} (upgradable), \textbf{Mutex} (binärer Semaphor) und speziellere. \textbf{Ausser} den Collections in \textbf{System.Collections.Concurrent} sind alle Collection NICHT Threadsafe.\\\\
+\textbf{[TPL]} (Task Parallel Library) ist ein \textbf{Work Stealing Thread Pool} mit verschiedenen Abstraktionsebenen (Task Parallelism, Data Parallelism, Asynchronous Programming with Continuations). Die \textbf{TPL} erkennt geschachtelte Task selber und es sind keine "speziellen" Vorkehrungen zu treffen. Des Weiteren spawned die \textbf{TPL} selber neue Threads wenn sie merkt, dass alle Threads blockiert sind. ACHTUNG: \textbf{TPL} Threads sind Background Threads (analog Java Daemon Threads). Via \textbf{ThreadPool.SetMaxThreads()} kann die maximale Anzahl Threads festgelegt werden -> \textbf{Deadlock}-Gefahr
 \begin{lstlisting}[language=c++]
 Task task1 = Task.Factory.StartNew(() => {
   // do stuff
@@ -266,7 +266,7 @@ Parallel.For(0, arr.Length,
   idx => MoreStuff(arr[idx])
 );
 \end{lstlisting}
-\textbf{[async/await]} erlauben das teil-asynchrone Ausführen von Funktionen. Der Compiler zerlegt die Funktion in zwei Hälften. Bis zum ersten blockierenden \textbf{await} wird die Funktion vom Caller ausgeführt. Der Rest wird auf einem \textbf{TPL}-Thread erledigt. \textbf{await} darf nur in Funktionen vorkommen die mit \textbf{async} gekennzeichtet sind und Funktionen die mit \textbf{async} gekennzeichnet sind MÜSSEN ein \textbf{await} enthalten! Das was nach dem await kommt ist die \textbf{Continuation}. Falls der Aufrufer \textbf{KEIN UI-Thread} auf einem \textbf{TPL-Thread} ausgeführt. Ist der Aufrufer ein \textbf{UI-Thread} dann wird die Continuation auf den \textbf{UI-Thread} dispatched. ACHTUNG: \textbf{async/await} kann zu einem Threadwechsel INNERHALB eines Funktionsaufrufs führen.
+\textbf{[async/await]} erlauben das teil-asynchrone Ausführen von Funktionen. Der Compiler zerlegt die Funktion in zwei Hälften. Bis zum ersten blockierenden \textbf{await} wird die Funktion vom Caller ausgeführt. Der Rest wird auf einem \textbf{TPL}-Thread erledigt. \textbf{Await} darf nur in Funktionen vorkommen die mit \textbf{async} gekennzeichtet sind und Funktionen die mit \textbf{async} gekennzeichnet sind MÜSSEN ein \textbf{await} enthalten! Das was nach dem await kommt ist die \textbf{Continuation}. Falls der Aufrufer \textbf{KEIN UI-Thread} auf einem \textbf{TPL-Thread} ausgeführt. Ist der Aufrufer ein \textbf{UI-Thread} dann wird die Continuation auf den \textbf{UI-Thread} dispatched. ACHTUNG: \textbf{async/await} kann zu einem Threadwechsel INNERHALB eines Funktionsaufrufs führen.
 \begin{lstlisting}[language=c++]
 class MainClass
   {
@@ -309,19 +309,19 @@ public class SLock {
   }
 }
 \end{lstlisting}
-\textbf{[compareAndSet(old, new)]} erlaubt das atomare prüfen ob die Variable einen bestimmten Wert hat und wenn ja diesen zu ersetzen. Es gibt zurück ob die Ersetzung stattgefunden hat. ACHTUNG: Hier kann man in das \textbf{ABA-Problem} laufen.
+\textbf{[compareAndSet(old, new)]} erlaubt das atomare Prüfen ob die Variable einen bestimmten Wert hat und wenn ja diesen zu ersetzen. Es gibt zurück ob die Ersetzung stattgefunden hat. ACHTUNG: Hier kann man in das \textbf{ABA-Problem} laufen.
 \begin{lstlisting}[language=java]
 do {
   oldV = var.get();
   newV = calcChanges(oldV);
 } while (!var.compareAndSet(oldV, newV));
 \end{lstlisting}
-\textbf{[Das ABA-Problem]} beschreibt was passiert wenn ein anderer Thread dazwischen schreibt aber sich der Wert den man vergleicht scheinbar nicht ändert. Dies ist Besonders bei lockfreien Datenstrukturen wie Stacks und listen ungünstig.
-\textbf{[Das .NET Memory Model]} unterscheided sich vom Java Memory Model darin, dass long und double auch mit \textbf{volatile} nicht atomar sind. Auch die Visibility ist nicht explizit definiert, da sie durch das Ordering gegeben ist. Betreffst des Orderings ist es wichtig, das \textbf{volatile} in .NET nur eine "Partial Fence" ist.
-\textbf{[volatile in .NET]} verfolgt beim Lesen die sogenannte \textbf{Acquire-Semantik}, was bedeutet, dass alles was \textbf{VOR dem LESEN} einer volatile Variable kommt nacht unten optimiert werden darf. Beim Schreiben wird die \textbf{Release-Semantik} angewandt. Die bedeutet, dass alles was \textbf{NACH dem SCHREIBEN} kommt nach oben optimiert werden darf. Da diese Semantik of ungenügend ist, gibt es mit \textbf{Thread.MemoryBarrier()} einen "Full-Fence".\\\\
+\textbf{[Das ABA-Problem]} beschreibt was passiert wenn ein anderer Thread dazwischen schreibt aber sich der Wert den man vergleicht scheinbar nicht ändert. Dies ist Besonders bei lockfreien Datenstrukturen wie Stacks und Listen ungünstig.
+\textbf{[Das .NET Memory Model]} unterscheided sich vom Java Memory Model darin, dass long und double auch mit \textbf{volatile} nicht atomar sind. Auch die Visibility ist nicht explizit definiert, da sie durch das Ordering gegeben ist. Betreffend des Orderings ist es wichtig, das \textbf{volatile} in .NET nur eine "Partial Fence" ist.
+\textbf{[Volatile in .NET]} verfolgt beim Lesen die sogenannte \textbf{Acquire-Semantik}, was bedeutet, dass alles was \textbf{VOR dem LESEN} einer volatile Variable kommt nacht unten optimiert werden darf. Beim Schreiben wird die \textbf{Release-Semantik} angewandt. Die bedeutet, dass alles was \textbf{NACH dem SCHREIBEN} kommt nach oben optimiert werden darf. Da diese Semantik of ungenügend ist, gibt es mit \textbf{Thread.MemoryBarrier()} einen "Full-Fence".\\\\
 \textbf{[GPU Vokabular]}: Eine GPU besteht aus mehreren \textbf{Streaming Multiprocessors (SM)}. Jeder SM besteht aus mehreren \textbf{Streaming Processors (SP)}. In CUDA sind Threads in \textbf{Blöcke} zusammengefasst. Jeder SM kann mehrere Blöcke beherbergen. Jeder Block ist intern in \textbf{Warp}s zu je 32 Threads zerlegt.\\\\
 \textbf{[SIMD]} ist die Abkürzung für "Single Instruction Multiple Data". Dies entspricht dem Paradigma der Verktorparallelität. GPUs sind inherent für SIMD Applikationen geeignet denn innerhalb einen SM führen alle Cores die gleiche Instruktion auf unterschiedlichen Daten aus. Es gibt auch in CPU begrenzt mächtige SIMD Instruktionen.\\\\
-\textbf{[CUDA]} ist die "Computer Unified Device Architecture" von nVidia. CUDA arbeitet mit sogenannten \textbf{Kernels} welche auf der GPU laufen. Jeder Kernel bekommt Informationen darüber auf welchem Block er läuft (\textbf{blockIdx.x}), welcher Thread innerhalb des Blocks er ist (\textbf{threadIdx.x}) und wie gross ein Block ist (\textbf{blockDim.x}). Auch die \textbf{y} und \textbf{z} Dimensionen sind nutzbar. Als Programmierer muss man die Datenauteilung selber modellieren.
+\textbf{[CUDA]} ist die "Computer Unified Device Architecture" von nVidia. CUDA arbeitet mit sogenannten \textbf{Kernels} welche auf der GPU laufen. Jeder Kernel bekommt Informationen darüber auf welchem Block er läuft (\textbf{blockIdx.x}), welcher Thread innerhalb des Blocks er ist (\textbf{threadIdx.x}) und wie gross ein Block ist (\textbf{blockDim.x}). Auch die \textbf{y} und \textbf{z} Dimensionen sind nutzbar. Als Programmierer muss man die Datenaufteilung selber modellieren.
 \begin{lstlisting}[language=c]
 // vector addition kernel
 __global__
@@ -362,12 +362,12 @@ void CudaVAdd(float* A, float* B,
 }
 \end{lstlisting}
 \textbf{[CUDA Function Keywords]} sind \textbf{\_\_global\_\_}(läuft auf Device wird von Host aufgerufen), \textbf{\_\_device\_\_}(läuft auf Device und wird von Device aufgerufen) und \textbf{\_\_host\_\_}(läuft auf Host und wird auch vom Host aufgerufen).\\\\
-\textbf{[Die Launch-Configuration]} muss dynamisch bestimmt werden und sich am Problem und den Fähigkeiten des Device (ermittelt mit \textbf{cudaGetDeviceProperties()}) orientieren. Aus Effizienzgründen sollte die Blockgrösse ein Vielfaches von 32 sein (remember: 32 Threads per Warp, multiple Warps per Block). Die Blockgrösse sollte auch nicht zu gross gewählt werden, um die Anzahl der unnützen Threads zu minimieren. Die SM sollten voll ausgeschöpft werden (also ans Limit von Resident Blocks und Resident Threads gehen). Grosse Blöcke haben den vorteil, dass die Threads interagieren können.\\\\
+\textbf{[Die Launch-Configuration]} muss dynamisch bestimmt werden und sich am Problem und den Fähigkeiten des Device (ermittelt mit \textbf{cudaGetDeviceProperties()}) orientieren. Aus Effizienzgründen sollte die Blockgrösse ein Vielfaches von 32 sein (remember: 32 Threads per Warp, multiple Warps per Block). Die Blockgrösse sollte auch nicht zu gross gewählt werden, um die Anzahl der unnützen Threads zu minimieren. Die SM sollten voll ausgeschöpft werden (also ans Limit von Resident Blocks und Resident Threads gehen). Grosse Blöcke haben den Vorteil, dass die Threads interagieren können.\\\\
 \textbf{[Memory Access]} in den \textbf{Device Global Memory} ist extrem viel teuerer (ca. Faktor 125) als Zugriff in den \textbf{Shared Memory(\_\_shared\_\_)} eines SM. Um \textbf{Memory Coalescing}(das Zusammenfassen mehrerer Ladevorgänge zu einem) zu verwenden sollten Speicherzugriffe möglichst folgende Gestalt haben:
 \begin{lstlisting}[language=c]
 data[(Ausdruck ohne threadIdx.x) + threadIdx.x]
 \end{lstlisting}
-\textbf{[Synchronisierung]} in CUDA kann mit \textbf{\_\_syncthreads()} erreicht werden, was alle Threads in einem Block zum synchronisieren zwingt.\\\\
+\textbf{[Synchronisierung]} in CUDA kann mit \textbf{\_\_syncthreads()} erreicht werden, was alle Threads in einem Block zum Synchronisieren zwingt.\\\\
 \textbf{[Effiziente Matrix Multiplikation]}:
 \begin{lstlisting}[language=c]
 __shared__ float Asub[TILE_SIZE][TILE_SIZE];
@@ -391,7 +391,7 @@ for (int tile = 0; tile < nofTiles; tile++) {
   __syncthreads();
 }
 \end{lstlisting}
-\textbf{[Cluster]} weissen sehr spezielle Eigenschafen auf. Erstens gibt es nur \textbf{innerhalb eines Nodes} Shared Memory und nicht über die grenzen eines Nodes hinweg. Zweitens sind Cluster durch die grosse Anzahl von General Purpose CPUs sehr gut für "allgemeine" Rechenaufgaben geeignet. Im allgemeinen wird der Austausch von Informationen in Clustern mit \textbf{Dateien} oder über \textbf{Sockets} bewerkstellig.\\\\
+\textbf{[Cluster]} weisen sehr spezielle Eigenschafen auf. Erstens gibt es nur \textbf{innerhalb eines Nodes} Shared Memory und nicht über die Grenzen eines Nodes hinweg. Zweitens sind Cluster durch die grosse Anzahl von General Purpose CPUs sehr gut für "allgemeine" Rechenaufgaben geeignet. Im Allgemeinen wird der Austausch von Informationen in Clustern mit \textbf{Dateien} oder über \textbf{Sockets} bewerkstellig.\\\\
 \textbf{[MPI]} ist die Abkürzung für \textbf{Message Passing Interface}. MPI basiert auf dem Actor- bzw. dem CSP-Modell. Es ist sehr gut für heterogene Umgebungen geeignet. MPI ist ein Industriestandard einer Bibliothek für Cluster-Anwendungen. MPI ist sogenanntes \textbf{SPMD} (Single Program Multiple Data), da jeder Node das gleiche Programm mit anderen Daten ausführt. Ein Beispiel in C:
 \begin{lstlisting}[language=c]
 #include <stdio.h>
@@ -424,7 +424,7 @@ class Program {
   }
 }
 \end{lstlisting}
-\textbf{[Kommunikation]} in MPI kann leicht über den \textbf{Communicator.world} erfolgen. Um direkt einem Node eine Nachricht zu senden verwendet man \textbf{world.Send(value, receiverRank, messageTag)}. Analog funktioniert das empfangen mit \textbf{world.Receive(senderRank, messageTag, out value)}. Nachrichten an alle können mit \textbf{world.Broadcast(ref value, senderRank)} abgesetzt UND empfangen werden.\textbf{Synchronisierung} kann mit \textbf{Communicator.world.Barrier()} erreicht werden. Alle Nodes warten darauf, dass alle die Barriere erreichen. Ergebnisse können mittels \textbf{Allreduce(T value, Op<T>)}(Broadcast) oder \textbf{Reduce(T value, Op<T>, int rank)}(ohne Brodcast) reduziert werden. Es existieren noch weitere Kommunikationsmöglichkeiten wie \textbf{outputArray = Alltoall(inputArray)}, \textbf{value = Scatter(array, rank)} oder \textbf{outputArray = Gather(value, rank)}.\\\\
+\textbf{[Kommunikation]} in MPI kann leicht über den \textbf{Communicator.world} erfolgen. Um direkt einem Node eine Nachricht zu senden verwendet man \textbf{world.Send(value, receiverRank, messageTag)}. Analog funktioniert das Empfangen mit \textbf{world.Receive(senderRank, messageTag, out value)}. Nachrichten an alle können mit \textbf{world.Broadcast(ref value, senderRank)} abgesetzt UND empfangen werden.\textbf{Synchronisierung} kann mit \textbf{Communicator.world.Barrier()} erreicht werden. Alle Nodes warten darauf, dass alle die Barriere erreichen. Ergebnisse können mittels \textbf{Allreduce(T value, Op<T>)}(Broadcast) oder \textbf{Reduce(T value, Op<T>, int rank)}(ohne Brodcast) reduziert werden. Es existieren noch weitere Kommunikationsmöglichkeiten wie \textbf{outputArray = Alltoall(inputArray)}, \textbf{value = Scatter(array, rank)} oder \textbf{outputArray = Gather(value, rank)}.\\\\
 \textbf{[.NET PLINQ]} Via "Extension Methods":
 \begin{lstlisting}[language=c++]
 salesEurope.
@@ -469,7 +469,7 @@ subject.OnCompleted();
 Normalerweise haben Subjects kein Gedächtniss, es gibt jedoch \textbf{ReplaySubject}, \textbf{BehaviorSubject} und \textbf{AsyncSubject}.\\\\
 \textbf{[Software Transactional Memory (STM)]} nimmt Ideen aus der Datenbankwelt und versucht damit das Problem des \textbf{Shared Mutable State} ohne Locks und Starvation anzugehen. Es gibt auch Implementationen in Hardware. Meistens wird \textbf{Optimistic Concurrency Control}(Rollback bei Konflikt) als Umsetzung verwendet. In der Java Welt gibt es ScalaSTM, andere Implementationen sind zumeist gestorben. STM ist ein deskriptiver Ansatz (was nicht wie) und somit ein relativ einfaches Programmiermodell. Die Implementierung ist jedoch sehr komplex und "teuer".\\\\
 \textbf{[Das Actor Modell]} versucht das Problem zu lösen, dass herkömmliche Sprachen nicht für Nebenläufigkeit entworfen wurden. Dass Threads of nur \textbf{Second-Class}-Features sind und Speicher per Default nicht \textbf{Thread-Safe} ist macht es extrem schwierig \textbf{KORREKTE} nebenläufige Programme zu schreiben.\\\\
-\textbf{[Active Objects]} (siehe auch [POSA2]) sind Objekte welche ein "Eigenleben" führen. Im \textbf{Actor Model} sind alle Actors \textbf{Active Objects}. \textbf{Active Objects} weiss grosse Ähnlichkeiten zu CSP (Communicating Sequencial Processes) auf.\\\\
+\textbf{[Active Objects]} (siehe auch [POSA2]) sind Objekte welche ein "Eigenleben" führen. Im \textbf{Actor Model} sind alle Actors \textbf{Active Objects}. \textbf{Active Objects} weist grosse Ähnlichkeiten zu CSP (Communicating Sequencial Processes) auf.\\\\
 \textbf{[Akkas Actor Konzept]} besteht aus Actors welche nebenläufig zueinander laufen. Sie verfügen jeweils über eine \textbf{Mail-Box} um Nachrichten zu empfangen. Beim Empfangen einer Nachricht wird eine spezielle Empfangsmethode im Actor ausgeführt.
 \begin{lstlisting}[language=java]
 public class NumberPrinter extends UntypedActor {
@@ -493,7 +493,7 @@ for (int i = 0; i < 100; i++) {
 
 system.shutdown();
 \end{lstlisting}
-\textbf{[ActorRef]} speichert eine \textbf{Referenz} auf eine Instanz eines Actors. Dadurch wird verhindert, dass direkt auf Variablen und Methoden des Actors zugegriffen wird. Fall der Actor neu gestartet werden muss, \textbf{behält er seine Adresse}. \textbf{ActorRef}s können in Nachrichten verschickt werden.\\\\
+\textbf{[ActorRef]} speichert eine \textbf{Referenz} auf eine Instanz eines Actors. Dadurch wird verhindert, dass direkt auf Variablen und Methoden des Actors zugegriffen wird. Falls der Actor neu gestartet werden muss, \textbf{behält er seine Adresse}. \textbf{ActorRef}s können in Nachrichten verschickt werden.\\\\
 \textbf{[Remoting]} wird dadurch vereinfacht, dass Nachrichten \textbf{immutable} sind. Ein Lookup für einen Actor kann mittels \textbf{system.actorSelection(urlString)} durchgeführt werden. Das Ergebnis (eine \textbf{ActorSelection}) kann 0-n Aktoren umfassen und zu einer \textbf{ActorRef} aufgelöst werden.\\\\
 \textbf{[Messaging]} in Akka ist grundsätzlich asynchron. Es kann jedoch \textbf{mittels Futures} synchron auf eine Antwort gewartet werden. Messages müssen \textbf{Serializable} sein, dürfen nur \textbf{final} Felder haben und nicht über Methoden mit Seiteneffekten verfügen. Collections müssen in \textbf{Collections.unmodifiableList} verpackt werden.
 \begin{lstlisting}[language=java]
@@ -519,8 +519,8 @@ public class Booking {
 // the same (!!!) in Scala
 class Booking(val name: String)
 \end{lstlisting}
-\textbf{[Das Akka Laufzeitsystem]} setzt typischer Weise auf \textbf{ForkJoinPools} auf, jedoch wird aus Gründen der Effizienz nicht ein Thread pro Actor verwendet. \textbf{Synchrones senden und Empfangen} von Nachrichten führt zu warteabhängigkeiten, was wiederum zu \textbf{Deadlocks} führen kann. Deshalb wird von \textbf{synchroner Kommunikation abgeraten}.\\\\
-\textbf{[Akka Supervision]} bezeichnet das Überwachen von Actors durch andere Actors. Eltern überwachen per Default immer ihre Kinder. Bei einer Exception wird der Supervisor informiert und muss dan entscheiden wie es weiter geht. Der Supervisor hat die Wahl zwischen vier Möglichkeiten. mit \textbf{Resume} kann er dem Kind sagen es soll weitermachen. \textbf{Restart} startet das Kind neu. \textbf{Stop} beendet das Kind und \textbf{Escalate} (siehe Fault Tolerance Patterns) meldet seinem \textbf{eigenen Supervisor}, dass er nicht weiss, wie er reagieren soll.\\\\
-\textbf{[Der System Shutdown]} erfolgt durch das stoppen der Actors. Mittels \textbf{getContext().stop(actorRef)} wird einem Actor mitgeteilt, dass er \textbf{nach Bearbeitung der aktuellen Message} anhalten soll. Mit \textbf{actor.tell(PoisonPill.getInstance(), sender)} wird eine Terminierungsnachricht eingereiht, deren Bearbeitung den Actor stoppt. Als "last measure" dient \textbf{actor.tell(Kill.getInstance(), sender)}, was eine \textbf{Supervision Behandlung} auslöst.
+\textbf{[Das Akka Laufzeitsystem]} setzt typischer Weise auf \textbf{ForkJoinPools} auf, jedoch wird aus Gründen der Effizienz nicht ein Thread pro Actor verwendet. \textbf{Synchrones Senden und Empfangen} von Nachrichten führt zu Warteabhängigkeiten, was wiederum zu \textbf{Deadlocks} führen kann. Deshalb wird von \textbf{synchroner Kommunikation abgeraten}.\\\\
+\textbf{[Akka Supervision]} bezeichnet das Überwachen von Actors durch andere Actors. Eltern überwachen per Default immer ihre Kinder. Bei einer Exception wird der Supervisor informiert und muss dann entscheiden wie es weiter geht. Der Supervisor hat die Wahl zwischen vier Möglichkeiten. Mit \textbf{Resume} kann er dem Kind sagen es soll weitermachen. \textbf{Restart} startet das Kind neu. \textbf{Stop} beendet das Kind und \textbf{Escalate} (siehe Fault Tolerance Patterns) meldet seinem \textbf{eigenen Supervisor}, dass er nicht weiss, wie er reagieren soll.\\\\
+\textbf{[Der System Shutdown]} erfolgt durch das Stoppen der Actors. Mittels \textbf{getContext().stop(actorRef)} wird einem Actor mitgeteilt, dass er \textbf{nach Bearbeitung der aktuellen Message} anhalten soll. Mit \textbf{actor.tell(PoisonPill.getInstance(), sender)} wird eine Terminierungsnachricht eingereiht, deren Bearbeitung den Actor stoppt. Als "last measure" dient \textbf{actor.tell(Kill.getInstance(), sender)}, was eine \textbf{Supervision Behandlung} auslöst.
 \end{multicols*}
 \end{document}
