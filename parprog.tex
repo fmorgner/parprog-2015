@@ -192,7 +192,6 @@ class MSTask extends RecursiveAction {
   }
 }
 
-Aufruf:
 ForkJoinPool pool = new ForkJoinPool();
 pool.invoke(new MSTask(array, 0, array.length));
 \end{lstlisting}
@@ -459,13 +458,10 @@ class Program {
 salesEurope.
   Union(salesAsia).
   Union(salesAmerica).
-
 GroupBy(item => item.Article,
         item => item.Volume).
-
 Select(category => new {Key = category.Key,
                         Value = category.Sum()}).
-
 Where(category => category.Value >= 1000);
 \end{lstlisting}
 oder mit der eingebetteten Syntax:
