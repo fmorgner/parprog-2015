@@ -311,7 +311,7 @@ class MainClass {
 }
 \end{lstlisting}
 Das \textbf{[Java Memory Model]} garantiert Atomicity für \textbf{Lese-/Schreiboperationen} bis 32-Bit (mit \textbf{volatile} auch für long und double) und auf Referenzen. Visibility ist bei Locks \textbf{Release/Acquire} garantiert (Änderungen \textbf{vor} Release werden bei Acquire sichtbar). Bei \textbf{volatile} Variablen werden alle vorhergehenden Änderungen beim Zugriff sichtbar. \textbf{final}-Variablen werden nach dem Ende des Konstruktors sichtbar. Sichtbarkeit ist auch bei Thread-Start und -Join sowie Task-Start und -Ende garantiert.\\\\
-\textbf{[volatile in JAVA]} garantiert, dass kein Reordering über einen Zugriff (lesend oder schreibend) auf eine derart markierte Variable hinaus statt findet. Das Ordering vor und nach \textbf{volatile} folgt innerhalb eines Threads der "As-If-Serial"-Sematik. Das heisst, der Compiler darf optimieren, falls die Semantik INNERHALB des Threads gleich bleibt. Zwischen Threads ist Ordering nur bei Zugriffen auf \textbf{volatile}-Variablen und bei Synchronisationsbefehlen garantiert. \textbf{volatile} Zugriffe führen nicht zu locking.\\\\
+\textbf{[volatile in JAVA]} garantiert, dass kein Reordering über einen Zugriff (lesend oder schreibend) auf eine derart markierte Variable hinaus statt findet. Das Ordering vor und nach \textbf{volatile} folgt innerhalb eines Threads der "As-If-Serial"-Semantik. Das heisst, der Compiler darf optimieren, falls die Semantik INNERHALB des Threads gleich bleibt. Zwischen Threads ist Ordering nur bei Zugriffen auf \textbf{volatile}-Variablen und bei Synchronisationsbefehlen garantiert. \textbf{volatile} Zugriffe führen nicht zu locking.\\\\
 \textbf{[Atomare Operationen]} erlauben das atomare Ändern einer Variable mit einer zusätzlichen Operation (meistens return des alten Werts). Es gibt für Atomare Klassen für Boolean, Integer, Long und Referenzen (auch für Array-Elemente). Seit Java 8 gibt es auf diesen sogar Operationen welche ein "Expression-Lambda" nehmen. \textbf{Atomare Operationen} garantieren Ordering und Visibility. Beispiele für atomare Operationen sind \textbf{getAndSet(newVal)}, \textbf{getAndAdd(delta)} und \textbf{updateAndGet(lambda)}.
 \begin{lstlisting}[language=java]
 public class SLock {
@@ -345,6 +345,7 @@ Das \textbf{[ABA-Problem]} beschreibt, was passiert wenn ein anderer Thread dazw
 \textbf{[GPU Vokabular]}: Eine GPU besteht aus mehreren \textbf{Streaming Multiprocessors (SM)}. Jeder SM besteht aus mehreren \textbf{Streaming Processors (SP)}. In CUDA sind Threads in \textbf{Blöcke} zusammengefasst. Jeder SM kann mehrere Blöcke beherbergen, jeder Block ist intern in \textbf{Warp}s zu je 32 Threads zerlegt.\\\\
 \textbf{[SIMD]} ist die Abkürzung für "Single Instruction Multiple Data". Dies entspricht dem Paradigma der Verktorparallelität. GPUs sind inherent für SIMD-Applikationen geeignet, denn innerhalb eines SM führen alle Cores die gleiche Instruktion auf unterschiedlichen Daten aus. Es gibt auch in CPU begrenzt mächtige SIMD-Instruktionen.\\\\
 \textbf{[CUDA]} ist die "Computer Unified Device Architecture" von NVIDIA. CUDA arbeitet mit sogenannten \textbf{Kernels} welche auf der GPU laufen. Jeder Kernel bekommt Informationen darüber, auf welchem Block er läuft (\textbf{blockIdx.x}), welcher Thread innerhalb des Blocks er ist (\textbf{threadIdx.x}) und wie gross ein Block ist (\textbf{blockDim.x}). Auch die \textbf{y}- und \textbf{z}-Dimensionen sind nutzbar. Als Programmierer muss man die Datenaufteilung selber modellieren.
+\textbf{Divergenz} heisst, dass im selben Warp unterschiedliche Instruktionen vorhanden sind (z.B. via if/else). Dies bewirkt, dass je für die "if"- und "else"-Elemente ein Cycle gebraucht wird --> Performance-Probleme.
 \begin{lstlisting}[language=c]
 // vector addition kernel
 __global__
@@ -357,7 +358,13 @@ void vecAKern(float *A, float *B,
   }
 }
 \end{lstlisting}
-Das \textbf{[CUDA Memory Management]} kennt die drei wichtigen Funktionen \textbf{cudaMalloc}, \textbf{cudaFree} und \textbf{cudaMemcpy} welche ähnlich wie ihre C-Geschwister funktionieren. Mit \textbf{cudaMalloc} kann Speicher im \textbf{Device Global Memory} alloziert werden. \textbf{cudaFree} gibt allozierten Speicher auf dem Device wieder frei und \textbf{cudaMemcpy} wird verwendet um Daten vom Host zum Device zu kopieren. Das "CUDA-Grundgerüst" ohne Error Handling sieht in etwa so aus:
+Das \textbf{[CUDA Memory Management]} kennt die drei wichtigen Funktionen \textbf{cudaMalloc}, \textbf{cudaFree} und \textbf{cudaMemcpy} welche ähnlich wie ihre C-Geschwister funktionieren. Mit \textbf{cudaMalloc} kann Speicher im \textbf{Device Global Memory} alloziert werden. \textbf{cudaFree} gibt allozierten Speicher auf dem Device wieder frei und \textbf{cudaMemcpy} wird verwendet um Daten vom Host zum Device zu kopieren.\\\\
+\textbf{Maximale Thread-Zahl}:\\
+Gegeben: Threads per Block: 1024, Matrix size: 256*512, Anzahl SMs: 3, Max. Resident Threads/SM: 2048, Max. Resident Blocks/SM: 16\\
+Limit A: 3 * 2048 (Max. Res. Threads/SM) \textbf{tiefste Zahl = Limit}\\
+Limit B: 3 * 16 * 1024 (Max. Res. Blocks)\\
+Limit C: 256 * 512 (\# Threads überhaupt, wegen Matrix Size)\\\\
+Das "CUDA-Grundgerüst" ohne Error Handling sieht in etwa so aus:
 \begin{lstlisting}[language=c]
 void CudaVAdd(float* A, float* B,
               float* C, int N) {
@@ -374,7 +381,7 @@ void CudaVAdd(float* A, float* B,
              cudaMemcpyHostToDevice);
   
   int bDim = 512;
-  int gDim = (N + blockDim - 1) / blockDim;
+  int gDim = (N + bDim - 1) / bDim;
   vecAKern<<<gDim, bDim>>>(d_A, d_B, d_C, N);
 
   cudaMemcpy(C, d_C, size,
@@ -481,7 +488,7 @@ subject.OnCompleted();
 \end{lstlisting}
 Normalerweise haben Subjects kein Gedächtnis, es gibt jedoch \textbf{ReplaySubject}, \textbf{BehaviorSubject} und \textbf{AsyncSubject}.\\\\
 \textbf{[Software Transactional Memory (STM)]} nimmt Ideen aus der Datenbankwelt und versucht damit das Problem des \textbf{Shared Mutable State} ohne Locks und Starvation anzugehen. Es gibt auch Implementationen in Hardware. Meistens wird \textbf{Optimistic Concurrency Control}(Rollback bei Konflikt) als Umsetzung verwendet. In der Java Welt gibt es ScalaSTM, ein deskriptiver Ansatz ("was", nicht "wie") und somit ein relativ einfaches Programmiermodell. Die Implementierung ist jedoch sehr komplex und "teuer".\\\\
-Das \textbf{[Actor Model]} versucht das Problem zu lösen, dass herkömmliche Sprachen nicht für Nebenläufigkeit entworfen wurden. Dass Threads of nur \textbf{Second-Class}-Features sind und Speicher per Default nicht \textbf{threadsafe} ist, macht es extrem schwierig \textbf{KORREKTE} nebenläufige Programme zu schreiben.\\\\
+Das \textbf{[Actor Model]} versucht das Problem zu lösen, dass herkömmliche Sprachen nicht für Nebenläufigkeit entworfen wurden. Dass Threads oft nur \textbf{Second-Class}-Features sind und Speicher per Default nicht \textbf{threadsafe} ist, macht es extrem schwierig \textbf{KORREKTE} nebenläufige Programme zu schreiben.\\\\
 \textbf{[Active Objects]} (siehe auch [POSA2]) sind Objekte welche ein "Eigenleben" führen. Im \textbf{Actor Model} sind alle Actors \textbf{Active Objects}. \textbf{Active Objects} weist grosse Ähnlichkeiten zu CSP (Communicating Sequencial Processes) auf.\\\\
 \textbf{[Akkas Actor Konzept]} besteht aus Actors welche nebenläufig zueinander laufen. Sie verfügen jeweils über eine \textbf{Mail-Box} um Nachrichten zu empfangen. Beim Empfangen einer Nachricht wird eine spezielle Empfangsmethode (\textbf{onReceive}) im Actor ausgeführt.
 \begin{lstlisting}[language=java]
@@ -534,6 +541,9 @@ class Booking(val name: String)
 \end{lstlisting}
 \textbf{[Das Akka Laufzeitsystem]} setzt typischerweise auf \textbf{ForkJoinPools} auf, jedoch wird aus Effizienzgründen nicht ein Thread pro Actor verwendet. \textbf{Synchrones Senden und Empfangen} von Nachrichten führt zu Warteabhängigkeiten, was wiederum zu \textbf{Deadlocks} führen kann. Deshalb wird von \textbf{synchroner Kommunikation abgeraten}.\\\\
 \textbf{[Akka Supervision]} bezeichnet das Überwachen von Actors durch andere Actors. Eltern überwachen per Default immer ihre Kinder. Bei einer Exception wird der Supervisor informiert und muss dand entscheiden, wie es weiter geht. Der Supervisor hat die Wahl zwischen vier Möglichkeiten: mit \textbf{Resume} kann er dem Kind sagen es soll weitermachen, \textbf{Restart} startet das Kind neu, \textbf{Stop} beendet das Kind und \textbf{Escalate} (siehe Fault Tolerance Patterns) meldet seinem \textbf{eigenen Supervisor}, dass er nicht weiss, wie er reagieren soll.\\\\
-Der \textbf{[System Shutdown]} erfolgt durch das Stoppen der Actors. Mittels \textbf{getContext().stop(actorRef)} wird einem Actor mitgeteilt, dass er \textbf{nach Bearbeitung der aktuellen Message} anhalten soll. Mit \textbf{actor.tell(PoisonPill.getInstance(), sender)} wird eine Terminierungsnachricht eingereiht, deren Bearbeitung den Actor stoppt. Als "last measure" dient \textbf{actor.tell(Kill.getInstance(), sender)}, was eine \textbf{Supervision Behandlung} auslöst.
+Der \textbf{[System Shutdown]} erfolgt durch das Stoppen der Actors. Mittels \textbf{getContext().stop(actorRef)} wird einem Actor mitgeteilt, dass er \textbf{nach Bearbeitung der aktuellen Message} anhalten soll. Mit \textbf{actor.tell(PoisonPill.getInstance(), sender)} wird eine Terminierungsnachricht eingereiht, deren Bearbeitung den Actor stoppt. Als "last measure" dient \textbf{actor.tell(Kill.getInstance(), sender)}, was eine \textbf{Supervision Behandlung} auslöst.\\\\
+Verteilung: Actor (Comm. via Messages, no shared state), Reactive\\
+No Race Conditions: Actor (no shared mem., Comm synch'd), Reactive, STM (autom. isoliert)\\
+No deadlocks: Reactive (Flow ist async, non-blocking, STM (kein Warten, nur Transakt.)
 \end{multicols*}
 \end{document}
